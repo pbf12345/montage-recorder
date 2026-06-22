@@ -3824,6 +3824,10 @@
                 }
                 filename += `_${new Date().toISOString().slice(0,10)}.pptx`;
                 
+                alert('isIOS = ' + isIOS);
+                
+                // iOS-optimierter Export
+                if (isIOS) {
                 // iOS-optimierter Export
                 if (isIOS) {
                     // Für iOS: Blob erstellen und Download-Link anzeigen
