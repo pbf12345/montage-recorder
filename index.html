@@ -3478,6 +3478,8 @@
                     fontSize: 12, color: '999999', align: 'center'
                 });
 
+                alert('DEBUG 3: Titelfolie fertig');
+
                 // === ARBEITSSCHRITT-FOLIEN ===
                 workSteps.forEach((step, index) => {
                     const slide = pres.addSlide();
@@ -3838,6 +3840,8 @@
                     filename += `_${projectInfo.variant.replace(/[^a-zA-Z0-9]/g, '_')}`;
                 }
                 filename += `_${new Date().toISOString().slice(0,10)}.pptx`;
+                
+                alert('DEBUG 4: Alle Slides fertig');
                 
                 alert('isIOS = ' + isIOS);
                 
