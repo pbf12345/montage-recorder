@@ -2117,37 +2117,21 @@
             if (!cameraSection) return;
             
             cameraSection.innerHTML = `
-                <div style="text-align: center; padding: 30px;">
-                    <div style="font-size: 4rem; margin-bottom: 20px;">📸</div>
-                    <h3 style="color: var(--hoermann-blue); margin-bottom: 20px;">Foto aufnehmen</h3>
+                <div style="text-align: center; padding: 20px;">
                     
-                    <div style="display: flex; flex-direction: column; gap: 15px; max-width: 300px; margin: 0 auto;">
-                        
-                        <!-- Direkter Kamera-Button für iOS -->
-                        <label class="btn btn-success" style="cursor: pointer; padding: 20px; font-size: 1.1rem;">
-                            📷 Foto aufnehmen
-                            <input type="file" 
-                                   accept="image/*" 
-                                   capture="environment" 
-                                   style="display: none;"
-                                   onchange="handleIOSPhoto(this)">
-                        </label>
-                        
-                        <!-- Galerie-Button -->
-                        <label class="btn btn-orange" style="cursor: pointer; padding: 20px; font-size: 1.1rem;">
-                            🖼️ Aus Galerie wählen
-                            <input type="file" 
-                                   accept="image/*" 
-                                   multiple 
-                                   style="display: none;"
-                                   onchange="handleIOSPhoto(this)">
-                        </label>
-                        
-                    </div>
+                    <label style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 200px; background: linear-gradient(135deg, #4CAF50, #2E7D32); border-radius: 20px; cursor: pointer; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                        <span style="font-size: 5rem;">📷</span>
+                        <span style="color: white; font-size: 1.3rem; font-weight: bold; margin-top: 10px;">Foto aufnehmen</span>
+                        <span style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-top: 5px;">Öffnet Kamera-App</span>
+                        <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleIOSPhoto(this)">
+                    </label>
                     
-                    <p style="margin-top: 20px; color: #888; font-size: 0.9rem;">
-                        📱 Optimiert für iPhone & iPad
-                    </p>
+                    <label style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 18px; background: linear-gradient(135deg, #FF9800, #F57C00); border-radius: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                        <span style="font-size: 1.8rem;">🖼️</span>
+                        <span style="color: white; font-size: 1.1rem; font-weight: bold;">Aus Galerie wählen</span>
+                        <input type="file" accept="image/*" multiple style="display: none;" onchange="handleIOSPhoto(this)">
+                    </label>
+                    
                 </div>
             `;
         }
