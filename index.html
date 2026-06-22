@@ -3842,10 +3842,13 @@
                 
                 alert('isIOS = ' + isIOS);
                 
+                alert('DEBUG 5: Starte Blob-Export');
+                
                 // iOS/Standalone-App optimierter Export
                 if (true) {
                     // Für iOS: Blob erstellen und Download-Link anzeigen
                     pres.write('blob').then((blob) => {
+                        alert('DEBUG 6: Blob erstellt, Größe = ' + blob.size);
                         const url = URL.createObjectURL(blob);
                         
                         // Download-Dialog für iOS
@@ -3880,8 +3883,8 @@
                         setTimeout(() => URL.revokeObjectURL(url), 300000);
                         
                     }).catch((error) => {
+                        alert('DEBUG ERROR: ' + error.name + ' - ' + error.message);
                         console.error('Fehler beim Erstellen:', error);
-                        alert('❌ Fehler beim PowerPoint-Export: ' + error.message);
                     });
                 } else {
                     // Für PC: Normaler Download
