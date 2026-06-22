@@ -3437,21 +3437,26 @@
                         margin: 0.05
                     });
                     
-                    // === MONTAGEANWEISUNG RECHTS MITTE ===
+                   // === MONTAGEANWEISUNG RECHTS MITTE ===
                     const instructionsTop = tableTop + 2.2;
                     
-                    slide.addShape(pres.ShapeType.roundRect, {
-                        x: tableLeft, y: instructionsTop, w: tableWidth, h: 0.32,
-                        fill: { color: 'DBDBDB' },
-                        line: { color: '000000', width: 1 }
-                    });
-                    
+                    // Header mit Text gruppiert
                     slide.addText('Montageanweisung', {
-                        x: tableLeft, y: instructionsTop, w: tableWidth, h: 0.32,
-                        fontSize: 20, bold: true, color: '000000', align: 'left', valign: 'middle'
+                        x: tableLeft, 
+                        y: instructionsTop, 
+                        w: tableWidth, 
+                        h: 0.32,
+                        fontSize: 20, 
+                        bold: true, 
+                        color: '000000', 
+                        align: 'left', 
+                        valign: 'middle',
+                        fill: { color: 'DBDBDB' },
+                        line: { color: '000000', width: 1 },
+                        shape: pres.ShapeType.roundRect
                     });
                     
-                    const instructionsContentTop = instructionsTop + 0.28;
+                    const instructionsContentTop = instructionsTop + 0.32;
                     let instructionsText = '';
 
                     if (step.instructions && step.instructions.trim()) {
@@ -3464,9 +3469,19 @@
                     const hasWiring = step.cables && step.cables.length > 0;
                     const instructionsHeight = hasWiring ? 0.8 : 1.4;
 
+                    // Inhalt mit Box gruppiert
                     slide.addText(instructionsText, {
-                        x: tableLeft, y: instructionsContentTop, w: tableWidth, h: instructionsHeight,
-                        fontSize: 18, color: '000000', align: 'left', valign: 'top'
+                        x: tableLeft, 
+                        y: instructionsContentTop, 
+                        w: tableWidth, 
+                        h: instructionsHeight,
+                        fontSize: 18, 
+                        color: '000000', 
+                        align: 'left', 
+                        valign: 'top',
+                        fill: { type: 'none' },
+                        line: { width: 0 },
+                        shape: pres.ShapeType.rect
                     });
 
                     // === VERKABELUNGSTABELLE ===
