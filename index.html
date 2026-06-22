@@ -3364,460 +3364,51 @@
         }
 
         function createPowerPointPresentation() {
-            alert('DEBUG 1: Start');
+            alert('TEST 1: Start');
+            
             try {
-                alert('DEBUG 2: Try-Block');
-                console.log('📊 Starte PowerPoint-Erstellung...');
-
-                // Prüfe ob Logo existiert
-                alert('DEBUG 2a: Logo vorhanden = ' + (typeof companyLogo !== 'undefined'));
-
                 const pres = new PptxGenJS();
+                alert('TEST 2: PptxGenJS erstellt');
                 
-                alert('DEBUG 2b: PptxGenJS erstellt');
+                // Nur eine einfache Slide
+                const slide = pres.addSlide();
+                slide.addText('Test Präsentation', { x: 1, y: 1, fontSize: 24 });
+                alert('TEST 3: Slide erstellt');
                 
-                // === TITELFOLIE ===
-                const titleSlide = pres.addSlide();
-                alert('DEBUG 2c: Slide erstellt');
+                // Einfacher Dateiname
+                const filename = 'Test.pptx';
                 
-                titleSlide.background = { color: 'FFFFFF' };
-                alert('DEBUG 2d: Background gesetzt');
-
-                // Logo temporär deaktiviert
-                /*
-                try {
-                    titleSlide.addImage({
-                        data: companyLogo,
-                        x: 10.0,
-                        y: 0.3,
-                        w: 2.3,
-                        h: 0.65
-                    });
-                } catch (error) {
-                    console.error('❌ Fehler beim Logo einfügen:', error);
-                }
-                */
+                // Export versuchen
+                alert('TEST 4: Starte Export...');
                 
-                // Haupttitel
-                titleSlide.addText('Montageanleitung', {
-                    x: 1, y: 1.8, w: 8, h: 0.8,
-                    fontSize: 44,
-                    bold: true,
-                    color: '1e3c72',
-                    align: 'center'
-                });
-                alert('DEBUG 2e: Haupttitel hinzugefügt');
-                
-                // Trennlinie
-                titleSlide.addShape(pres.ShapeType.rect, {
-                    x: 2.5, y: 2.8, w: 5, h: 0.02,
-                    fill: { color: '1e3c72' },
-                    line: { type: 'none' }
-                });
-                alert('DEBUG 2f: Trennlinie hinzugefügt');
-                
-                // PROJEKT-INFORMATIONEN
-                let yPos = 3.2;
-                
-                if (projectInfo.customer) {
-                    titleSlide.addText('Kunde:', {
-                        x: 2, y: yPos, w: 2.5, h: 0.5,
-                        fontSize: 20, bold: true, color: '333333', align: 'right'
-                    });
-                    titleSlide.addText(projectInfo.customer, {
-                        x: 4.6, y: yPos, w: 3.4, h: 0.5,
-                        fontSize: 20, color: '000000', align: 'left'
-                    });
-                    yPos += 0.6;
-                }
-                
-                if (projectInfo.product) {
-                    titleSlide.addText('Produkt:', {
-                        x: 2, y: yPos, w: 2.5, h: 0.5,
-                        fontSize: 20, bold: true, color: '333333', align: 'right'
-                    });
-                    titleSlide.addText(projectInfo.product, {
-                        x: 4.6, y: yPos, w: 3.4, h: 0.5,
-                        fontSize: 20, color: '000000', align: 'left'
-                    });
-                    yPos += 0.6;
-                }
-                
-                if (projectInfo.variant) {
-                    titleSlide.addText('Variante:', {
-                        x: 2, y: yPos, w: 2.5, h: 0.5,
-                        fontSize: 20, bold: true, color: '333333', align: 'right'
-                    });
-                    titleSlide.addText(projectInfo.variant, {
-                        x: 4.6, y: yPos, w: 3.4, h: 0.5,
-                        fontSize: 20, color: '000000', align: 'left'
-                    });
-                    yPos += 0.7;
-                }
-                
-                // Erstellungsdatum
-                const dateText = `Erstellt am: ${projectInfo.createdAt || new Date().toLocaleString('de-DE')}`;
-                titleSlide.addText(dateText, {
-                    x: 1, y: yPos + 0.3, w: 8, h: 0.4,
-                    fontSize: 14, color: '666666', align: 'center', italic: true
-                });
-                
-                // Anzahl Arbeitsschritte
-                const stepsInfo = `${workSteps.length} Arbeitsschritt${workSteps.length !== 1 ? 'e' : ''}`;
-                titleSlide.addText(stepsInfo, {
-                    x: 1, y: yPos + 0.8, w: 8, h: 0.4,
-                    fontSize: 14, color: '666666', align: 'left'
-                });
-                
-                // Footer
-                titleSlide.addText('Funkwerk | Digitale Arbeitsanweisungen', {
-                    x: 1, y: 6.8, w: 8, h: 0.4,
-                    fontSize: 12, color: '999999', align: 'center'
-                });
-
-                alert('DEBUG 3: Titelfolie fertig');
-
-                // === ARBEITSSCHRITT-FOLIEN ===
-                workSteps.forEach((step, index) => {
-                    const slide = pres.addSlide();
-                    slide.background = { color: 'FFFFFF' };
-                    
-                    const stepNum = step.stepNumber;
-                    const stepTitle = getStepTitle(step);
-
-                    // === HEADER (ABGERUNDET) ===
-                    slide.addShape(pres.ShapeType.roundRect, {
-                        x: 0.16, y: 0.16, w: 13.0, h: 0.55,
-                        fill: { color: 'DBDBDB' },
-                        line: { color: '000000', width: 1 }
-                    });
-
-                    // Logo oben rechts
-                    // Logo temporär deaktiviert
-                    /*
-                    try {
-                        slide.addImage({
-                            data: companyLogo,
-                            x: 11.65, y: 0.22, w: 1.5, h: 0.45
-                        });
-                    } catch (error) {
-                        console.error('❌ Fehler beim Logo einfügen (Arbeitsschritt):', error);
-                    }
-                    */
-                    
-                    slide.addText(`Schritt ${stepNum}: ${stepTitle}`, {
-                        x: 0.16, y: 0.16, w: 13.0, h: 0.55,
-                        fontSize: 24, bold: true, color: '000000', align: 'left', valign: 'middle'
-                    });
-                    
-                    // === BILD-BEREICH LINKS (temporär deaktiviert für iOS-Test) ===
-                    const imageAreaLeft = 0.2;
-                    const imageAreaTop = 0.9;
-                    const imageAreaWidth = 6.2;
-                    const imageAreaHeight = 6.0;
-
-                    // Platzhalter statt echte Bilder
-                    slide.addText('[BILDER DEAKTIVIERT FÜR TEST]', {
-                        x: imageAreaLeft + 1.5, y: imageAreaTop + 2.5, w: 3, h: 0.5,
-                        fontSize: 14, color: '999999', align: 'center'
-                    });
-                    
-                    // === MATERIAL-TABELLE RECHTS OBEN ===
-                    
-                    // === MATERIAL-TABELLE RECHTS OBEN ===
-                    const tableLeft = 6.5;
-                    const tableTop = 0.86;
-                    const tableWidth = 6.6;
-                    
-                    const tableData = [
-                        [
-                            { text: 'Pos.', options: { fontSize: 18, bold: true, color: 'FFFFFF', fill: '000000', align: 'left' } },
-                            { text: 'Artikelnummer', options: { fontSize: 18, bold: true, color: 'FFFFFF', fill: '000000', align: 'left' } },
-                            { text: 'Bezeichnung', options: { fontSize: 18, bold: true, color: 'FFFFFF', fill: '000000', align: 'left' } },
-                            { text: 'Anz.', options: { fontSize: 18, bold: true, color: 'FFFFFF', fill: '000000', align: 'left' } }
-                        ]
-                    ];
-                    
-                    if (step.materials.length > 0) {
-                        step.materials.forEach((material, materialIndex) => {
-                            const rowColor = (materialIndex + 1) % 2 === 1 ? 'FFFFFF' : 'F5F5F5';
-                            
-                            tableData.push([
-                                { text: (materialIndex + 1).toString(), options: { fontSize: 18, color: '000000', fill: rowColor, align: 'center' } },
-                                { text: material.number, options: { fontSize: 18, bold: true, color: '0057B8', fill: rowColor, align: 'left' } },
-                                { text: material.description || material.number, options: { fontSize: 14, color: '000000', fill: rowColor, align: 'left' } },
-                                { text: `${material.quantity} x`, options: { fontSize: 18, color: '000000', fill: rowColor, align: 'center' } }
-                            ]);
-                        });
-                    } else {
-                        tableData.push([
-                            { text: '-', options: { fontSize: 18, color: '000000', fill: 'FFFFFF', align: 'center' } },
-                            { text: '-', options: { fontSize: 18, color: '000000', fill: 'FFFFFF', align: 'left' } },
-                            { text: '-', options: { fontSize: 18, color: '000000', fill: 'FFFFFF', align: 'left' } },
-                            { text: '-', options: { fontSize: 18, color: '000000', fill: 'FFFFFF', align: 'center' } }
-                        ]);
-                    }
-                    
-                    slide.addTable(tableData, {
-                        x: tableLeft, y: tableTop, w: tableWidth,
-                        colW: [0.53, 1.97, 3.55, 0.55],
-                        border: { pt: 0.6, color: 'FFFFFF' },
-                        margin: 0.05
-                    });
-                    
-                   // === MONTAGEANWEISUNG RECHTS MITTE ===
-                    const instructionsTop = tableTop + 2.2;
-                    
-                    // Header mit Text gruppiert
-                    slide.addText('Montageanweisung', {
-                        x: tableLeft, 
-                        y: instructionsTop, 
-                        w: tableWidth, 
-                        h: 0.32,
-                        fontSize: 20, 
-                        bold: true, 
-                        color: '000000', 
-                        align: 'left', 
-                        valign: 'middle',
-                        fill: { color: 'DBDBDB' },
-                        line: { color: '000000', width: 1 },
-                        shape: pres.ShapeType.roundRect
-                    });
-                    
-                    const instructionsContentTop = instructionsTop + 0.32;
-                    let instructionsText = '';
-
-                    if (step.instructions && step.instructions.trim()) {
-                        instructionsText = step.instructions.replace(/\n\n📋 Verkabelungsplan:[\s\S]*?(?=\n\n|$)/g, '');
-                        instructionsText = `• ${instructionsText.trim()}`;
-                    } else {
-                        instructionsText = 'Text für Montageanweisung';
-                    }
-
-                    const hasWiring = step.cables && step.cables.length > 0;
-                    const instructionsHeight = hasWiring ? 0.8 : 1.4;
-
-                    // Inhalt mit Box gruppiert
-                    slide.addText(instructionsText, {
-                        x: tableLeft, 
-                        y: instructionsContentTop, 
-                        w: tableWidth, 
-                        h: instructionsHeight,
-                        fontSize: 18, 
-                        color: '000000', 
-                        align: 'left', 
-                        valign: 'top',
-                        fill: { type: 'none' },
-                        line: { width: 0 },
-                        shape: pres.ShapeType.rect
-                    });
-
-                    // === VERKABELUNGSTABELLE ===
-                    if (hasWiring) {
-                        const wiringTop = instructionsContentTop + instructionsHeight + 0.1;
-                        const wiringTableTop = wiringTop + 0.32;
+                pres.write('base64')
+                    .then(function(data) {
+                        alert('TEST 5: Base64 OK! Länge: ' + data.length);
                         
-                        const wiringTableData = [
-                            [
-                                { text: 'Kabel', options: { fontSize: 18, bold: true, color: '000000', fill: 'EBBBD7', align: 'left' } },
-                                { text: 'Von (Stecker/Pin)', options: { fontSize: 18, bold: true, color: '000000', fill: 'EBBBD7', align: 'left' } },
-                                { text: 'Nach (Stecker/Pin)', options: { fontSize: 18, bold: true, color: '000000', fill: 'EBBBD7', align: 'left' } }
-                            ]
-                        ];
-                        
-                        step.cables.forEach((cable, cableIndex) => {
-                            const rowColor = (cableIndex + 1) % 2 === 1 ? 'FFFFFF' : 'F0F4FF';
-                            
-                            wiringTableData.push([
-                                { text: cable.designation || '-', options: { fontSize: 18, bold: true, color: '000000', fill: rowColor, align: 'left' } },
-                                { text: cable.from || '-', options: { fontSize: 18, color: '000000', fill: rowColor, align: 'left' } },
-                                { text: cable.to || '-', options: { fontSize: 18, color: '000000', fill: rowColor, align: 'left' } }
-                            ]);
-                        });
-                        
-                        slide.addTable(wiringTableData, {
-                            x: tableLeft, y: wiringTableTop, w: tableWidth,
-                            colW: [2.2, 2.2, 2.2],
-                            border: { pt: 0.5, color: '003b7a' },
-                            margin: 0.05,
-                            autoPage: false
-                        });
-                    }
-                    
-                   // === WERKZEUG UND DREHMOMENT ===
-                    const toolsStartTop = instructionsContentTop + (hasWiring ? instructionsHeight + 1.2 : 1.5);
-                    const boxWidth = 2.48;
-                    const boxHeight = 0.3;
-                    const rowGap = 0.15;
-                    const boxGap = 0.2;
-                    const leftStart = tableLeft;
-
-                    let toolsArray = [];
-
-                    if (step.tools && step.tools.length > 0) {
-                        toolsArray = step.tools.filter(t => t.tool || t.torque);
-                    } else if (step.tool || step.torque) {
-                        toolsArray = [{ tool: step.tool || '', torque: step.torque || '' }];
-                    }
-
-                    if (toolsArray.length === 0) {
-                        const autoTool = getStepTools(step);
-                        const autoTorque = getStepTorque(step);
-                        if (autoTool || autoTorque) {
-                            toolsArray = [{ tool: autoTool || '', torque: autoTorque || '' }];
+                        // Blob erstellen
+                        const byteChars = atob(data);
+                        const byteNums = new Array(byteChars.length);
+                        for (let i = 0; i < byteChars.length; i++) {
+                            byteNums[i] = byteChars.charCodeAt(i);
                         }
-                    }
-
-                    toolsArray.forEach((toolItem, toolIndex) => {
-                        const currentTop = toolsStartTop + (toolIndex * (boxHeight + rowGap));
-                        let currentX = leftStart;
+                        const byteArray = new Uint8Array(byteNums);
+                        const blob = new Blob([byteArray], {type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
                         
-                        const hasWerkzeug = toolItem.tool && toolItem.tool.trim();
-                        const hasDrehmoment = toolItem.torque && toolItem.torque.trim();
+                        alert('TEST 6: Blob erstellt! Größe: ' + blob.size);
                         
-                        if (hasWerkzeug) {
-                            // Textbox mit Hintergrund (alles in einem Objekt)
-                            slide.addText(`🔧 ${toolItem.tool}`, {
-                                x: currentX, 
-                                y: currentTop, 
-                                w: boxWidth, 
-                                h: boxHeight,
-                                fontSize: 18, 
-                                color: '000000', 
-                                align: 'left', 
-                                valign: 'middle',
-                                fill: { color: 'EBBBD7' },
-                                line: { color: '8E4585', width: 1 },
-                                shape: pres.ShapeType.roundRect
-                            });
-                            
-                            currentX += boxWidth + boxGap;
-                        }
-                        
-                        if (hasDrehmoment) {
-                            // Textbox mit Hintergrund (alles in einem Objekt)
-                            slide.addText(`⚡ ${toolItem.torque}`, {
-                                x: currentX, 
-                                y: currentTop, 
-                                w: boxWidth, 
-                                h: boxHeight,
-                                fontSize: 18, 
-                                color: '000000', 
-                                align: 'left', 
-                                valign: 'middle',
-                                fill: { color: 'EBBBD7' },
-                                line: { color: '8E4585', width: 1 },
-                                shape: pres.ShapeType.roundRect
-                            });
-                        }
-                    });
-
-                    const hintTop = toolsArray.length > 0 
-                        ? toolsStartTop + (toolsArray.length * (boxHeight + rowGap)) + 0.2
-                        : toolsStartTop;
-
-                    // === HINWEISE ===
-                    let hinweiseText = '';
-
-                    if (step.warning) {
-                        hinweiseText = step.warning;
-                    } else {
-                        const hints = getStepHints(step);
-                        if (hints && hints.length > 0) {
-                            hinweiseText = hints.join(' ');
-                        }
-                    }
-
-                    if (hinweiseText) {
-                        // Hinweis-Header (Text mit Hintergrund)
-                        slide.addText('⚠ Hinweis', {
-                            x: tableLeft, 
-                            y: hintTop, 
-                            w: tableWidth, 
-                            h: 0.35,
-                            fontSize: 18, 
-                            bold: true, 
-                            color: '000000', 
-                            align: 'left', 
-                            valign: 'middle',
-                            fill: { color: 'FFF0C8' },
-                            line: { color: '000000', width: 1 },
-                            shape: pres.ShapeType.roundRect
-                        });
-                        
-                        // Hinweis-Inhalt (Text mit Hintergrund)
-                        slide.addText(hinweiseText, {
-                            x: tableLeft, 
-                            y: hintTop + 0.35, 
-                            w: tableWidth, 
-                            h: 0.6,
-                            fontSize: 18, 
-                            color: '000000', 
-                            align: 'left', 
-                            valign: 'top',
-                            fill: { color: 'FFFFFF' },
-                            line: { color: '000000', width: 1 },
-                            shape: pres.ShapeType.rect
-                        });
-                    }
-                });
-
-                // PowerPoint-Datei speichern
-                let filename = 'Montageanleitung';
-                if (projectInfo.customer) {
-                    filename += `_${projectInfo.customer.replace(/[^a-zA-Z0-9]/g, '_')}`;
-                }
-                if (projectInfo.product) {
-                    filename += `_${projectInfo.product.replace(/[^a-zA-Z0-9]/g, '_')}`;
-                }
-                if (projectInfo.variant) {
-                    filename += `_${projectInfo.variant.replace(/[^a-zA-Z0-9]/g, '_')}`;
-                }
-                filename += `_${new Date().toISOString().slice(0,10)}.pptx`;
-                
-                alert('DEBUG 4: Alle Slides fertig');
-                
-                alert('isIOS = ' + isIOS);
-                
-                alert('DEBUG 5: Starte Blob-Export');
-                
-                // iOS/Standalone-App optimierter Export - Alternative Methode
-                try {
-                    // Versuche base64 statt blob (funktioniert besser auf iOS)
-                    pres.write('base64').then((base64Data) => {
-                        alert('DEBUG 6: Base64 erstellt');
-                        
-                        // Konvertiere base64 zu blob
-                        const byteCharacters = atob(base64Data);
-                        const byteNumbers = new Array(byteCharacters.length);
-                        for (let i = 0; i < byteCharacters.length; i++) {
-                            byteNumbers[i] = byteCharacters.charCodeAt(i);
-                        }
-                        const byteArray = new Uint8Array(byteNumbers);
-                        const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
-                        
-                        alert('DEBUG 7: Blob erstellt, Größe = ' + blob.size);
-                        
+                        // Download anzeigen
                         const url = URL.createObjectURL(blob);
-                        
-                        // Download-Dialog für iOS
-                        const downloadModal = document.createElement('div');
-                        downloadModal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;';
-                        downloadModal.innerHTML = '<div style="background: white; border-radius: 20px; padding: 30px; max-width: 350px; text-align: center;"><div style="font-size: 4rem; margin-bottom: 15px;">📊</div><h3 style="color: #003b7a; margin-bottom: 15px;">PowerPoint bereit!</h3><p style="color: #666; margin-bottom: 20px; font-size: 14px;">Tippe auf Herunterladen und wähle In Dateien sichern.</p><a href="' + url + '" download="' + filename + '" style="display: block; background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; padding: 18px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 1.1rem; margin-bottom: 15px;">📥 Herunterladen</a><button onclick="this.parentElement.parentElement.remove();" style="background: #666; color: white; border: none; padding: 12px 25px; border-radius: 10px; font-size: 1rem; cursor: pointer;">Schließen</button></div>';
-                        document.body.appendChild(downloadModal);
-                        
-                        setTimeout(() => URL.revokeObjectURL(url), 300000);
-                        
-                    }).catch((error) => {
-                        alert('DEBUG ERROR base64: ' + error.message);
+                        const modal = document.createElement('div');
+                        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;';
+                        modal.innerHTML = '<div style="background:white;padding:30px;border-radius:20px;text-align:center;"><h2>Download bereit!</h2><a href="' + url + '" download="' + filename + '" style="display:block;background:green;color:white;padding:20px;border-radius:10px;margin:20px 0;text-decoration:none;">📥 Herunterladen</a><button onclick="this.parentElement.parentElement.remove();" style="padding:15px 30px;font-size:16px;">Schließen</button></div>';
+                        document.body.appendChild(modal);
+                    })
+                    .catch(function(err) {
+                        alert('TEST ERROR: ' + err.message);
                     });
-                } catch (error) {
-                    alert('DEBUG ERROR try: ' + error.message);
-                }
-
+                    
             } catch (error) {
-                console.error('Fehler bei PowerPoint-Erstellung:', error);
-                alert('❌ PowerPoint-Export fehlgeschlagen: ' + error.message);
+                alert('TEST CATCH: ' + error.message);
             }
         }
 
