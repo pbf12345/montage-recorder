@@ -2054,6 +2054,8 @@
         
         // iOS-Erkennung
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+        const isMobileApp = isIOS || isStandalone;
         
         async function startCamera() {
             // Auf iOS IMMER native Kamera nutzen
@@ -3826,10 +3828,8 @@
                 
                 alert('isIOS = ' + isIOS);
                 
-                // iOS-optimierter Export
-                if (isIOS) {
-                // iOS-optimierter Export
-                if (isIOS) {
+                // iOS/Standalone-App optimierter Export
+                if (isIOS || isStandalone || isMobileApp) {
                     // Für iOS: Blob erstellen und Download-Link anzeigen
                     pres.write('blob').then((blob) => {
                         const url = URL.createObjectURL(blob);
