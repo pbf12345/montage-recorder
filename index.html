@@ -3829,7 +3829,7 @@
                 alert('isIOS = ' + isIOS);
                 
                 // iOS/Standalone-App optimierter Export
-                if (isIOS || isStandalone || isMobileApp) {
+                if (true) {
                     // Für iOS: Blob erstellen und Download-Link anzeigen
                     pres.write('blob').then((blob) => {
                         const url = URL.createObjectURL(blob);
