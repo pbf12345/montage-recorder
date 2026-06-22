@@ -3376,17 +3376,12 @@
                 
                 alert('DEBUG 2b: PptxGenJS erstellt');
                 
-                // Custom Folienformat: Breitbild 33,867 cm x 19,05 cm
-                pres.defineLayout({ 
-                    name: 'CUSTOM_BREITBILD', 
-                    width: 13.333,
-                    height: 7.5
-                });
-                pres.layout = 'CUSTOM_BREITBILD';
-                
                 // === TITELFOLIE ===
                 const titleSlide = pres.addSlide();
+                alert('DEBUG 2c: Slide erstellt');
+                
                 titleSlide.background = { color: 'FFFFFF' };
+                alert('DEBUG 2d: Background gesetzt');
 
                 // Logo temporär deaktiviert
                 /*
@@ -3411,6 +3406,7 @@
                     color: '1e3c72',
                     align: 'center'
                 });
+                alert('DEBUG 2e: Haupttitel hinzugefügt');
                 
                 // Trennlinie
                 titleSlide.addShape(pres.ShapeType.rect, {
@@ -3418,6 +3414,7 @@
                     fill: { color: '1e3c72' },
                     line: { type: 'none' }
                 });
+                alert('DEBUG 2f: Trennlinie hinzugefügt');
                 
                 // PROJEKT-INFORMATIONEN
                 let yPos = 3.2;
