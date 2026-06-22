@@ -3510,82 +3510,19 @@
                         fontSize: 24, bold: true, color: '000000', align: 'left', valign: 'middle'
                     });
                     
-                    // === BILD-BEREICH LINKS ===
+                    // === BILD-BEREICH LINKS (temporär deaktiviert für iOS-Test) ===
                     const imageAreaLeft = 0.2;
                     const imageAreaTop = 0.9;
                     const imageAreaWidth = 6.2;
                     const imageAreaHeight = 6.0;
 
-                    if (step.photos.length > 0) {
-                        if (step.photos.length === 1) {
-                            const photo = step.photos[0];
-                            let aspectRatio = 16/9;
-                            
-                            if (photo.resolution) {
-                                const [width, height] = photo.resolution.split('x').map(Number);
-                                aspectRatio = width / height;
-                            }
-                            
-                            let displayWidth = imageAreaWidth;
-                            let displayHeight = imageAreaHeight;
-                            
-                            if (aspectRatio > (imageAreaWidth / imageAreaHeight)) {
-                                displayHeight = displayWidth / aspectRatio;
-                            } else {
-                                displayWidth = displayHeight * aspectRatio;
-                            }
-                            
-                            const xPos = imageAreaLeft + (imageAreaWidth - displayWidth) / 2;
-                            const yPosImg = imageAreaTop + (imageAreaHeight - displayHeight) / 2;
-                            
-                            slide.addImage({
-                                data: photo.data,
-                                x: xPos, y: yPosImg, w: displayWidth, h: displayHeight
-                            });
-                            
-                        } else {
-                            const maxImageWidth = 3.0;
-                            const maxImageHeight = 2.8;
-                            const spacing = 0.15;
-                            
-                            step.photos.slice(0, 4).forEach((photo, photoIndex) => {
-                                const row = Math.floor(photoIndex / 2);
-                                const col = photoIndex % 2;
-                                
-                                const baseX = imageAreaLeft + col * (maxImageWidth + spacing);
-                                const baseY = imageAreaTop + row * (maxImageHeight + spacing);
-                                
-                                let aspectRatio = 4/3;
-                                
-                                if (photo.resolution) {
-                                    const [width, height] = photo.resolution.split('x').map(Number);
-                                    aspectRatio = width / height;
-                                }
-                                
-                                let displayWidth = maxImageWidth;
-                                let displayHeight = maxImageHeight;
-                                
-                                if (aspectRatio > (maxImageWidth / maxImageHeight)) {
-                                    displayHeight = displayWidth / aspectRatio;
-                                } else {
-                                    displayWidth = displayHeight * aspectRatio;
-                                }
-                                
-                                const xPos = baseX + (maxImageWidth - displayWidth) / 2;
-                                const yPosImg = baseY + (maxImageHeight - displayHeight) / 2;
-                                
-                                slide.addImage({
-                                    data: photo.data,
-                                    x: xPos, y: yPosImg, w: displayWidth, h: displayHeight
-                                });
-                            });
-                        }
-                    } else {
-                        slide.addText('[BILD]', {
-                            x: imageAreaLeft + 2, y: imageAreaTop + 2.5, w: 2, h: 0.5,
-                            fontSize: 16, color: '969696', align: 'center'
-                        });
-                    }
+                    // Platzhalter statt echte Bilder
+                    slide.addText('[BILDER DEAKTIVIERT FÜR TEST]', {
+                        x: imageAreaLeft + 1.5, y: imageAreaTop + 2.5, w: 3, h: 0.5,
+                        fontSize: 14, color: '999999', align: 'center'
+                    });
+                    
+                    // === MATERIAL-TABELLE RECHTS OBEN ===
                     
                     // === MATERIAL-TABELLE RECHTS OBEN ===
                     const tableLeft = 6.5;
