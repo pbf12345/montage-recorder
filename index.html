@@ -1209,7 +1209,7 @@
                     </p>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                        <button class="btn btn-large btn-success" onclick="exportToPowerPoint()">
+                        <button class="btn btn-large btn-success" onclick="showExportOptions()">
                             📊 PowerPoint exportieren
                         </button>
                         <button class="btn btn-large" onclick="exportBOM()" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
@@ -3360,6 +3360,147 @@
                 document.head.appendChild(script);
             } else {
                 createPowerPointPresentation();
+            }
+        }
+
+        function showExportOptions() {
+            if (workSteps.length === 0) {
+                alert('⚠️ Keine Arbeitsschritte vorhanden!');
+                return;
+            }
+            
+            // Statistik berechnen
+            let totalPhotos = 0;
+            let totalMaterials = 0;
+            workSteps.forEach(function(step) {
+                totalPhotos += (step.photos || []).length;
+                totalMaterials += (step.materials || []).length;
+            });
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+            modal.innerHTML = '<div style="background:white;padding:30px;border-radius:20px;text-align:center;max-width:400px;width:100%;">' +
+                '<div style="font-size:3rem;margin-bottom:15px;">📤</div>' +
+                '<h3 style="color:#003b7a;margin-bottom:10px;">Export-Methode wählen</h3>' +
+                
+                '<div style="background:#f5f5f5;padding:12px;border-radius:10px;margin-bottom:20px;text-align:left;font-size:14px;">' +
+                '<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>📋 Schritte:</span><strong>' + workSteps.length + '</strong></div>' +
+                '<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>📸 Fotos:</span><strong>' + totalPhotos + '</strong></div>' +
+                '<div style="display:flex;justify-content:space-between;"><span>📦 Materialien:</span><strong>' + totalMaterials + '</strong></div>' +
+                '</div>' +
+                
+                '<button id="btnJSONExport" style="display:block;width:100%;background:linear-gradient(135deg,#4CAF50,#2E7D32);color:white;padding:18px;border-radius:12px;border:none;font-weight:bold;font-size:1rem;margin-bottom:12px;cursor:pointer;">' +
+                '📦 JSON für PC-Konverter<br><span style="font-size:0.8rem;opacity:0.9;">Empfohlen für iPhone</span></button>' +
+                
+                '<button id="btnPPTExport" style="display:block;width:100%;background:linear-gradient(135deg,#2196F3,#1976D2);color:white;padding:18px;border-radius:12px;border:none;font-weight:bold;font-size:1rem;margin-bottom:12px;cursor:pointer;">' +
+                '📊 Direkt PowerPoint<br><span style="font-size:0.8rem;opacity:0.9;">Funktioniert nur am PC</span></button>' +
+                
+                '<button id="btnCloseExport" style="background:#666;color:white;border:none;padding:12px 25px;border-radius:10px;font-size:1rem;cursor:pointer;">Abbrechen</button>' +
+                '</div>';
+            document.body.appendChild(modal);
+            
+            document.getElementById('btnJSONExport').onclick = function() {
+                modal.remove();
+                exportFullJSON();
+            };
+            
+            document.getElementById('btnPPTExport').onclick = function() {
+                modal.remove();
+                exportToPowerPoint();
+            };
+            
+            document.getElementById('btnCloseExport').onclick = function() {
+                modal.remove();
+            };
+        }
+        
+        function exportFullJSON() {
+            try {
+                // ALLE Daten sammeln - NICHTS geht verloren!
+                const exportData = {
+                    metadata: {
+                        version: '3.0',
+                        format: 'funkwerk-montageanleitung-full',
+                        title: 'Funkwerk Montageanleitung',
+                        exported: new Date().toISOString()
+                    },
+                    projectInfo: {
+                        customer: projectInfo.customer || '',
+                        product: projectInfo.product || '',
+                        variant: projectInfo.variant || '',
+                        createdAt: projectInfo.createdAt || new Date().toLocaleString('de-DE')
+                    },
+                    workSteps: workSteps.map(function(step) {
+                        return {
+                            stepNumber: step.stepNumber,
+                            instructions: step.instructions || '',
+                            materials: (step.materials || []).map(function(m) {
+                                return {
+                                    number: m.number || '',
+                                    quantity: m.quantity || 1,
+                                    description: m.description || ''
+                                };
+                            }),
+                            tools: step.tools || [],
+                            tool: step.tool || '',
+                            torque: step.torque || '',
+                            warning: step.warning || '',
+                            cables: (step.cables || []).map(function(c) {
+                                return {
+                                    designation: c.designation || '',
+                                    from: c.from || '',
+                                    to: c.to || ''
+                                };
+                            }),
+                            photos: (step.photos || []).map(function(p) {
+                                return {
+                                    data: p.data,
+                                    resolution: p.resolution || '',
+                                    timestamp: p.timestamp || ''
+                                };
+                            })
+                        };
+                    }),
+                    statistics: {
+                        totalSteps: workSteps.length,
+                        totalPhotos: workSteps.reduce(function(sum, step) { return sum + (step.photos || []).length; }, 0),
+                        totalMaterials: workSteps.reduce(function(sum, step) { return sum + (step.materials || []).length; }, 0)
+                    }
+                };
+                
+                const jsonString = JSON.stringify(exportData);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2);
+                
+                let filename = 'Montageanleitung';
+                if (projectInfo.customer) filename += '_' + projectInfo.customer.replace(/[^a-zA-Z0-9]/g, '_');
+                if (projectInfo.product) filename += '_' + projectInfo.product.replace(/[^a-zA-Z0-9]/g, '_');
+                filename += '_' + new Date().toISOString().slice(0,10) + '.json';
+                
+                const url = URL.createObjectURL(blob);
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+                modal.innerHTML = '<div style="background:white;padding:30px;border-radius:20px;text-align:center;max-width:400px;width:100%;">' +
+                    '<div style="font-size:4rem;margin-bottom:15px;">✅</div>' +
+                    '<h3 style="color:#003b7a;margin-bottom:15px;">JSON-Export bereit!</h3>' +
+                    '<div style="background:#e8f5e9;padding:15px;border-radius:10px;margin-bottom:20px;text-align:left;">' +
+                    '<div style="color:#2e7d32;font-weight:bold;margin-bottom:10px;">✓ Alle Daten enthalten:</div>' +
+                    '<div style="font-size:14px;color:#333;">' +
+                    '• ' + workSteps.length + ' Arbeitsschritte<br>' +
+                    '• ' + exportData.statistics.totalPhotos + ' Fotos (vollständig!)<br>' +
+                    '• ' + exportData.statistics.totalMaterials + ' Materialien<br>' +
+                    '• Dateigröße: ' + fileSizeMB + ' MB</div>' +
+                    '</div>' +
+                    '<p style="color:#666;margin-bottom:20px;font-size:14px;">Öffne die Datei am PC mit dem<br><strong>JSON → PowerPoint Konverter</strong></p>' +
+                    '<a href="' + url + '" download="' + filename + '" style="display:block;background:linear-gradient(135deg,#4CAF50,#2E7D32);color:white;padding:18px;border-radius:12px;text-decoration:none;font-weight:bold;font-size:1.1rem;margin-bottom:15px;">📥 JSON Herunterladen</a>' +
+                    '<button onclick="this.parentElement.parentElement.remove();" style="background:#666;color:white;border:none;padding:12px 25px;border-radius:10px;font-size:1rem;cursor:pointer;">Schließen</button>' +
+                    '</div>';
+                document.body.appendChild(modal);
+                
+                setTimeout(function() { URL.revokeObjectURL(url); }, 300000);
+                
+            } catch (error) {
+                alert('Export-Fehler: ' + error.message);
             }
         }
 
