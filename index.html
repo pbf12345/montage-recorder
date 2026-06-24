@@ -2184,9 +2184,12 @@
         const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 
         async function startCamera() {
+            console.log('📷 startCamera() aufgerufen');
+            
             // Mobile: Native Kamera verwenden
             if (isMobile) {
-                // Nutzt den bestehenden File-Input oder erstellt einen neuen
+                console.log('📱 Mobile erkannt - öffne native Kamera');
+                
                 let fileInput = document.getElementById('photo-upload');
                 
                 if (!fileInput) {
@@ -2198,20 +2201,17 @@
                     fileInput.style.display = 'none';
                     document.body.appendChild(fileInput);
                     
-                    // Event-Handler für Kamera-Fotos
                     fileInput.addEventListener('change', async (e) => {
                         if (e.target.files && e.target.files.length > 0) {
-                            await processFiles(e.target.files); // Nutzt Ihre bestehende Funktion!
-                            e.target.value = ''; // Reset für erneute Nutzung
+                            await processFiles(e.target.files);
+                            e.target.value = '';
                         }
                     });
                 }
                 
-                // Native Kamera aktivieren
                 fileInput.setAttribute('capture', 'environment');
                 fileInput.click();
                 
-                // Capture-Attribut nach Verwendung entfernen (wichtig für Upload-Button)
                 setTimeout(() => {
                     fileInput.removeAttribute('capture');
                 }, 1000);
@@ -2220,17 +2220,25 @@
             }
             
             // Desktop: WebRTC-Stream mit Live-Vorschau
+            console.log('🖥️ Desktop erkannt - starte WebRTC');
+            
             try {
-                const videoElement = document.getElementById('cameraPreview');
-                const canvasElement = document.getElementById('cameraCanvas');
+                const videoElement = document.getElementById('camera-video'); // ← GEÄNDERT!
+                const canvasElement = document.getElementById('photo-canvas'); // ← GEÄNDERT!
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('camera-status-text');
+                const captureButton = document.getElementById('capture-button');
                 
                 if (!videoElement || !canvasElement) {
                     console.error('❌ Kamera-Elemente nicht gefunden');
-                    showValidationError('⚠️ Kamera-Elemente fehlen im HTML');
+                    alert('⚠️ Kamera-Elemente fehlen im HTML');
                     return;
                 }
                 
-                // Kamera-Stream anfordern
+                // Status: Laden
+                if (statusText) statusText.textContent = 'Kamera wird gestartet...';
+                if (statusDot) statusDot.className = 'status-dot status-inactive';
+                
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: 'environment',
@@ -2241,22 +2249,14 @@
                 
                 videoElement.srcObject = stream;
                 videoElement.style.display = 'block';
-                videoElement.play();
+                await videoElement.play();
                 
-                // Stream für späteren Stop speichern
                 window.currentCameraStream = stream;
                 
-                // UI aktualisieren
-                const loadingIndicator = document.querySelector('.camera-loading');
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = 'none';
-                }
-                
-                const captureBtn = document.querySelector('.capture-button');
-                if (captureBtn) {
-                    captureBtn.style.display = 'block';
-                    captureBtn.disabled = false;
-                }
+                // Status: Aktiv
+                if (statusText) statusText.textContent = 'Kamera aktiv';
+                if (statusDot) statusDot.className = 'status-dot status-active';
+                if (captureButton) captureButton.disabled = false;
                 
                 console.log('✅ Desktop-Kamera gestartet');
                 
@@ -2270,10 +2270,16 @@
                 } else if (error.name === 'NotFoundError') {
                     errorMessage = 'Keine Kamera gefunden.';
                 } else if (error.name === 'NotReadableError') {
-                    errorMessage = 'Kamera wird bereits verwendet.';
+                    errorMessage = 'Kamera wird bereits von einer anderen Anwendung verwendet.';
                 }
                 
-                showValidationError('⚠️ ' + errorMessage);
+                alert('⚠️ ' + errorMessage);
+                
+                // Status: Fehler
+                const statusText = document.getElementById('camera-status-text');
+                const statusDot = document.getElementById('status-dot');
+                if (statusText) statusText.textContent = 'Fehler';
+                if (statusDot) statusDot.className = 'status-dot status-inactive';
             }
         }
 
@@ -2284,24 +2290,30 @@
                 window.currentCameraStream = null;
             }
             
-            const videoElement = document.getElementById('cameraPreview');
+            const videoElement = document.getElementById('camera-video'); // ← GEÄNDERT!
             if (videoElement) {
                 videoElement.srcObject = null;
                 videoElement.style.display = 'none';
             }
             
-            const captureBtn = document.querySelector('.capture-button');
-            if (captureBtn) {
-                captureBtn.style.display = 'none';
+            const captureButton = document.getElementById('capture-button');
+            if (captureButton) {
+                captureButton.disabled = true;
             }
+            
+            const statusText = document.getElementById('camera-status-text');
+            const statusDot = document.getElementById('status-dot');
+            if (statusText) statusText.textContent = 'Kamera gestoppt';
+            if (statusDot) statusDot.className = 'status-dot status-inactive';
             
             console.log('✅ Kamera gestoppt');
         }
 
+
         // Desktop: Foto vom Video-Stream aufnehmen
-        function capturePhoto() {
-            const videoElement = document.getElementById('cameraPreview');
-            const canvasElement = document.getElementById('cameraCanvas');
+        function takePhoto() {
+            const videoElement = document.getElementById('camera-video');
+            const canvasElement = document.getElementById('photo-canvas');
             
             if (!videoElement || !canvasElement) {
                 console.error('❌ Kamera-Elemente nicht gefunden');
@@ -2310,29 +2322,25 @@
             
             const context = canvasElement.getContext('2d');
             
-            // Canvas-Größe an Video anpassen
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
             
-            // Frame vom Video auf Canvas zeichnen
             context.drawImage(videoElement, 0, 0);
             
-            // Als Blob exportieren
             canvasElement.toBlob(async (blob) => {
                 if (!blob) {
-                    showValidationError('❌ Fehler beim Aufnehmen');
+                    alert('❌ Fehler beim Aufnehmen');
                     return;
                 }
                 
-                // Als File-Objekt behandeln
                 const file = new File([blob], `camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
                 
-                // Über Ihre bestehende Upload-Pipeline verarbeiten
                 await processFiles([file]);
                 
-                // Feedback
+                // Flash-Effekt
                 flashEffect();
-                showToast('✅ Foto aufgenommen!');
+                
+                console.log('✅ Foto aufgenommen');
                 
             }, 'image/jpeg', 0.90);
         }
