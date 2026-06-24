@@ -935,6 +935,111 @@
             .content { padding: 15px; }
             .section { padding: 15px; margin-bottom: 20px; }
         }
+
+        /* Upload-Zone Touch-optimiert */
+        .upload-zone {
+            border: 2px dashed #ccc;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            background: #f9f9f9;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .upload-zone:active {
+            transform: scale(0.98);
+        }
+
+        .upload-zone.drag-over {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+
+        .upload-content {
+            pointer-events: none; /* Nur die Zone ist klickbar */
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .upload-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .upload-button {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            pointer-events: all; /* Button ist separat klickbar */
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .upload-button:active {
+            transform: translateY(0);
+        }
+
+        /* Mobile Anpassungen */
+        @media (max-width: 768px) {
+            .upload-zone {
+                padding: 20px;
+            }
+            
+            .upload-icon {
+                font-size: 3rem;
+            }
+            
+            .upload-title {
+                font-size: 1.2rem;
+            }
+            
+            .upload-description {
+                font-size: 0.9rem;
+                display: none; /* Auf Mobile verstecken */
+            }
+            
+            .upload-button {
+                width: 100%;
+                justify-content: center;
+                padding: 18px 20px;
+            }
+        }
+
+        /* iOS Safari spezifisch */
+        @supports (-webkit-touch-callout: none) {
+            .upload-zone {
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+            }
+        }
+
+
     </style>
 </head>
 <body>
@@ -1155,11 +1260,11 @@
                         <canvas id="photo-canvas"></canvas>
                     </div>
                     
-                    <div class="upload-zone" onclick="uploadPhotos()" id="upload-zone">
+                    <div class="upload-zone" id="upload-zone">
                         <p style="margin-bottom: 15px; color: var(--hoermann-blue); font-weight: 600; font-size: 1.1rem;">
-                            📁 Oder Bilder aus Galerie wählen
+                            <span id="upload-zone-title">📁 Oder Bilder aus Galerie wählen</span>
                         </p>
-                        <button class="btn btn-orange" type="button">
+                        <button class="btn btn-orange" type="button" onclick="uploadPhotos()">
                             🖼️ Bilder hochladen
                         </button>
                         <input type="file" id="photo-upload" accept="image/*" multiple style="display: none;">
@@ -1569,6 +1674,18 @@
             setupSpeechRecognition();
             setupFileUpload();
             setupDragAndDrop();
+            
+            // Mobile: Text in Upload-Zone anpassen
+            if (isMobile) {
+                const uploadTitle = document.getElementById('upload-zone-title');
+                
+                if (uploadTitle) {
+                    uploadTitle.textContent = '📁 Tippen zum Auswählen';
+                }
+                
+                console.log('✅ Mobile UI aktiviert');
+            }
+            
             await loadFromIndexedDB();
             startAutoSave();
             updateAllCounts();
@@ -2287,29 +2404,92 @@
         // ===== FILE UPLOAD =====
         function setupFileUpload() {
             const fileInput = document.getElementById('photo-upload');
-            fileInput.addEventListener('change', handlePhotoUpload);
+            if (fileInput) {
+                fileInput.addEventListener('change', handlePhotoUpload);
+            }
         }
 
         function setupDragAndDrop() {
             const uploadZone = document.getElementById('upload-zone');
             
+            if (!uploadZone) return;
+            
+            // Mobile: Nur Click, kein Drag & Drop
+            if (isMobile) {
+                // Gesamte Zone klickbar machen (außer Button)
+                uploadZone.style.cursor = 'pointer';
+                
+                uploadZone.addEventListener('click', (e) => {
+                    // Verhindere doppelten Trigger wenn Button geklickt wird
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                        return;
+                    }
+                    e.preventDefault();
+                    uploadPhotos();
+                });
+                
+                // Touch-Feedback für gesamte Zone
+                uploadZone.addEventListener('touchstart', (e) => {
+                    if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                        uploadZone.style.transform = 'scale(0.98)';
+                        uploadZone.style.opacity = '0.9';
+                    }
+                });
+                
+                uploadZone.addEventListener('touchend', () => {
+                    uploadZone.style.transform = 'scale(1)';
+                    uploadZone.style.opacity = '1';
+                });
+                
+                // Verhindere Drag & Drop Konflikte
+                uploadZone.addEventListener('dragstart', (e) => e.preventDefault());
+                uploadZone.addEventListener('drop', (e) => e.preventDefault());
+                
+                // Text für Mobile anpassen
+                const titleElement = document.getElementById('upload-zone-title');
+                if (titleElement) {
+                    titleElement.textContent = '📁 Tippen zum Auswählen';
+                }
+                
+                console.log('✅ Mobile Upload-Zone aktiviert (Touch)');
+                return;
+            }
+            
+            // Desktop: Drag & Drop aktivieren
+            uploadZone.addEventListener('click', (e) => {
+                // Nur wenn nicht auf Button geklickt
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+                uploadPhotos();
+            });
+            
             uploadZone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 uploadZone.classList.add('drag-over');
+                uploadZone.style.borderColor = 'var(--hoermann-blue)';
+                uploadZone.style.backgroundColor = 'rgba(0, 61, 122, 0.05)';
             });
 
             uploadZone.addEventListener('dragleave', (e) => {
                 e.preventDefault();
                 uploadZone.classList.remove('drag-over');
+                uploadZone.style.borderColor = '';
+                uploadZone.style.backgroundColor = '';
             });
 
             uploadZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 uploadZone.classList.remove('drag-over');
+                uploadZone.style.borderColor = '';
+                uploadZone.style.backgroundColor = '';
+                
                 if (e.dataTransfer.files.length > 0) {
                     processFiles(e.dataTransfer.files);
                 }
             });
+            
+            console.log('✅ Desktop Drag & Drop aktiviert');
         }
 
         function uploadPhotos() {
@@ -2437,7 +2617,8 @@
                 
                 const sourceConfig = {
                     'camera': { icon: '📷', text: 'Kamera' },
-                    'upload': { icon: '📁', text: 'Galerie' }
+                    'upload': { icon: '📁', text: 'Galerie' },
+                    'native-camera': { icon: '📱', text: 'Kamera' }
                 };
                 const config = sourceConfig[photo.source] || { icon: '📷', text: 'Foto' };
                 
