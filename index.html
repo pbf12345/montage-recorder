@@ -332,10 +332,17 @@
             width: 100%;
             margin-bottom: 25px;
             border-radius: 20px;
-            overflow: visible; /* WICHTIG! War "hidden" */
+            overflow: visible;
             background: #000;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 1; /* Niedrig halten */
+            z-index: 1;
+            pointer-events: none; /* ← WICHTIG! */
+        }
+
+        .camera-section video,
+        .camera-section button,
+        .camera-section .camera-controls {
+            pointer-events: auto; /* Nur Kind-Elemente klickbar */
         }
 
         .camera-container {
@@ -1075,6 +1082,47 @@
             }
         }
 
+        /* EMERGENCY FIX: Alle Buttons auf iOS klickbar */
+        button, .btn {
+            pointer-events: auto !important;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.2) !important;
+            touch-action: manipulation !important;
+            position: relative !important;
+            z-index: 100 !important;
+            cursor: pointer !important;
+        }
+
+        /* Photo-Section Buttons extra hoch */
+        #photo-step button,
+        #photo-step .btn {
+            z-index: 1000 !important;
+            pointer-events: auto !important;
+        }
+
+        /* Upload-Zone nicht über Buttons */
+        .upload-zone {
+            z-index: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* Sections nicht über Buttons */
+        .section {
+            z-index: auto !important;
+        }
+
+        .camera-section {
+            z-index: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* Mobile-spezifisch */
+        @supports (-webkit-touch-callout: none) {
+            button, .btn, input[type="button"] {
+                -webkit-appearance: none !important;
+                appearance: none !important;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -1297,20 +1345,41 @@
                     </div>
 
                     <!-- Mobile: Nur Upload-Buttons -->
-                    <div id="mobile-photo-section">
-                        <div style="text-align: center; margin: 25px 0;">
-                            <button class="btn btn-large btn-success" onclick="startCamera()" type="button" style="margin-bottom: 15px;">
+                    <div id="mobile-photo-section" style="position: relative; z-index: 100;">
+                        <div style="text-align: center; margin: 25px 0; position: relative; z-index: 100;">
+                            <button 
+                                class="btn btn-large btn-success" 
+                                onclick="startCamera()" 
+                                type="button" 
+                                style="
+                                    margin-bottom: 15px; 
+                                    position: relative; 
+                                    z-index: 1000; 
+                                    pointer-events: auto;
+                                    -webkit-tap-highlight-color: rgba(0,0,0,0.2);
+                                    width: 100%;
+                                    display: block;
+                                ">
                                 📷 Foto aufnehmen
                             </button>
                         </div>
                     </div>
 
                     <!-- Upload Zone (für beide) -->
-                    <div class="upload-zone" id="upload-zone">
+                    <div class="upload-zone" id="upload-zone" style="position: relative; z-index: 50;">
                         <p style="margin-bottom: 15px; color: var(--hoermann-blue); font-weight: 600; font-size: 1.1rem;">
                             <span id="upload-zone-title">📁 Oder Bilder aus Galerie wählen</span>
                         </p>
-                        <button class="btn btn-orange" type="button" onclick="uploadPhotos()">
+                        <button 
+                            class="btn btn-orange" 
+                            type="button" 
+                            onclick="uploadPhotos()" 
+                            style="
+                                position: relative; 
+                                z-index: 1001; 
+                                pointer-events: auto;
+                                -webkit-tap-highlight-color: rgba(0,0,0,0.2);
+                            ">
                             🖼️ Bilder hochladen
                         </button>
                         <input type="file" id="photo-upload" accept="image/*" multiple style="display: none;">
