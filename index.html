@@ -1048,6 +1048,33 @@
             }
         }
 
+        /* Kamera-Section: Nur Desktop */
+        #camera-section-desktop {
+            display: none;
+        }
+
+        /* Mobile: Kamera-Section ausblenden, nur Buttons zeigen */
+        @media (max-width: 768px) {
+            #camera-section-desktop {
+                display: none !important;
+            }
+            
+            #mobile-photo-section {
+                display: block;
+            }
+        }
+
+        /* Desktop: Buttons ausblenden, Kamera zeigen */
+        @media (min-width: 769px) {
+            #camera-section-desktop {
+                display: block;
+            }
+            
+            #mobile-photo-section {
+                display: none;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -1252,7 +1279,8 @@
                         📷 Nehmen Sie ein oder mehrere Bilder für diesen Arbeitsschritt auf
                     </div>
                     
-                    <div class="camera-section">
+                    <!-- Kamera-Section NUR FÜR DESKTOP -->
+                    <div class="camera-section" id="camera-section-desktop">
                         <div class="camera-container">
                             <video id="camera-video" autoplay playsinline muted></video>
                             <div class="camera-status">
@@ -1267,7 +1295,17 @@
                         </div>
                         <canvas id="photo-canvas"></canvas>
                     </div>
-                    
+
+                    <!-- Mobile: Nur Upload-Buttons -->
+                    <div id="mobile-photo-section">
+                        <div style="text-align: center; margin: 25px 0;">
+                            <button class="btn btn-large btn-success" onclick="startCamera()" type="button" style="margin-bottom: 15px;">
+                                📷 Foto aufnehmen
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Upload Zone (für beide) -->
                     <div class="upload-zone" id="upload-zone">
                         <p style="margin-bottom: 15px; color: var(--hoermann-blue); font-weight: 600; font-size: 1.1rem;">
                             <span id="upload-zone-title">📁 Oder Bilder aus Galerie wählen</span>
@@ -2184,9 +2222,9 @@
         const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 
         async function startCamera() {
-            console.log('📷 startCamera() aufgerufen');
+            console.log('📷 startCamera() aufgerufen, isMobile:', isMobile);
             
-            // Mobile: Native Kamera verwenden
+            // Mobile: NUR native Kamera (kein Video-Stream)
             if (isMobile) {
                 console.log('📱 Mobile erkannt - öffne native Kamera');
                 
@@ -2203,12 +2241,14 @@
                     
                     fileInput.addEventListener('change', async (e) => {
                         if (e.target.files && e.target.files.length > 0) {
+                            console.log('📸 Fotos ausgewählt:', e.target.files.length);
                             await processFiles(e.target.files);
                             e.target.value = '';
                         }
                     });
                 }
                 
+                // Native Kamera öffnen
                 fileInput.setAttribute('capture', 'environment');
                 fileInput.click();
                 
@@ -2216,15 +2256,15 @@
                     fileInput.removeAttribute('capture');
                 }, 1000);
                 
-                return;
+                return; // WICHTIG: Hier stoppen für Mobile!
             }
             
             // Desktop: WebRTC-Stream mit Live-Vorschau
             console.log('🖥️ Desktop erkannt - starte WebRTC');
             
             try {
-                const videoElement = document.getElementById('camera-video'); // ← GEÄNDERT!
-                const canvasElement = document.getElementById('photo-canvas'); // ← GEÄNDERT!
+                const videoElement = document.getElementById('camera-video');
+                const canvasElement = document.getElementById('photo-canvas');
                 const statusDot = document.getElementById('status-dot');
                 const statusText = document.getElementById('camera-status-text');
                 const captureButton = document.getElementById('capture-button');
@@ -2270,12 +2310,11 @@
                 } else if (error.name === 'NotFoundError') {
                     errorMessage = 'Keine Kamera gefunden.';
                 } else if (error.name === 'NotReadableError') {
-                    errorMessage = 'Kamera wird bereits von einer anderen Anwendung verwendet.';
+                    errorMessage = 'Kamera wird bereits verwendet.';
                 }
                 
                 alert('⚠️ ' + errorMessage);
                 
-                // Status: Fehler
                 const statusText = document.getElementById('camera-status-text');
                 const statusDot = document.getElementById('status-dot');
                 if (statusText) statusText.textContent = 'Fehler';
