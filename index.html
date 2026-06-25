@@ -1862,7 +1862,7 @@
         async function initializeApp() {
             setupEventListeners();
             setupSpeechRecognition();
-            setupFileUpload();          // ← HIER EINFÜGEN (neu)
+            setupFileUpload();
             setupDragAndDrop();
             
             // Mobile: Text in Upload-Zone anpassen
@@ -1908,6 +1908,47 @@
                     }, 1000);
                 }
             });
+        }
+
+        // ===== FILE UPLOAD SETUP =====
+        function setupFileUpload() {
+            console.log('📁 setupFileUpload() wird ausgeführt');
+            
+            const fileInput = document.getElementById('photo-upload');
+            
+            if (!fileInput) {
+                console.error('❌ photo-upload Element nicht im DOM gefunden!');
+                return;
+            }
+            
+            console.log('✅ photo-upload Element gefunden:', fileInput);
+            
+            // Entferne alte Event Listener (falls vorhanden)
+            const newFileInput = fileInput.cloneNode(true);
+            fileInput.parentNode.replaceChild(newFileInput, fileInput);
+            
+            // Füge neuen Event Listener hinzu
+            newFileInput.addEventListener('change', function(event) {
+                console.log('📸 File Input Change Event!');
+                console.log('Ausgewählte Dateien:', event.target.files.length);
+                
+                if (event.target.files && event.target.files.length > 0) {
+                    console.log('Rufe processFiles() auf...');
+                    
+                    // processFiles aufrufen
+                    if (typeof processFiles === 'function') {
+                        processFiles(event.target.files);
+                    } else {
+                        console.error('❌ processFiles Funktion nicht gefunden!');
+                        alert('Fehler: processFiles fehlt');
+                    }
+                    
+                    // Input zurücksetzen
+                    event.target.value = '';
+                }
+            });
+            
+            console.log('✅ File Upload Event Listener erfolgreich hinzugefügt');
         }
 
         function startAutoSave() {
