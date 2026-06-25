@@ -1430,7 +1430,14 @@
                             ">
                             🖼️ Bilder hochladen
                         </button>
-                        <input type="file" id="photo-upload" accept="image/*" multiple style="display: none;">
+                        <input 
+                            type="file" 
+                            id="photo-upload" 
+                            accept="image/*" 
+                            multiple 
+                            style="display: none;"
+                            onchange="handlePhotoUpload(event)"
+                        >
                         <p style="margin-top: 10px; color: var(--text-light); font-size: 0.9rem;">
                             Unterstützte Formate: JPG, PNG, WEBP (max. 10MB pro Bild)
                         </p>
@@ -1855,7 +1862,7 @@
         async function initializeApp() {
             setupEventListeners();
             setupSpeechRecognition();
-            setupFileUpload();
+            setupFileUpload();          // ← HIER EINFÜGEN (neu)
             setupDragAndDrop();
             
             // Mobile: Text in Upload-Zone anpassen
@@ -1874,6 +1881,8 @@
             updateAllCounts();
             console.log('✅ App erfolgreich initialisiert');
         }
+
+        
 
         function setupEventListeners() {
             const startBtn = document.getElementById('start-recording-btn');
@@ -2545,12 +2554,31 @@
         
                
 
-        // ===== FILE UPLOAD =====
+        // ===== FILE UPLOAD SETUP =====
         function setupFileUpload() {
+            console.log('📁 setupFileUpload() wird ausgeführt');
+            
             const fileInput = document.getElementById('photo-upload');
-            if (fileInput) {
-                fileInput.addEventListener('change', handlePhotoUpload);
+            
+            if (!fileInput) {
+                console.error('❌ photo-upload Element nicht gefunden!');
+                return;
             }
+            
+            console.log('✅ photo-upload gefunden:', fileInput);
+            
+            // Event Listener hinzufügen
+            fileInput.addEventListener('change', function(event) {
+                console.log('📸 File Input Change Event gefeuert!');
+                console.log('Ausgewählte Dateien:', event.target.files.length);
+                
+                if (event.target.files && event.target.files.length > 0) {
+                    processFiles(event.target.files);
+                    event.target.value = ''; // Reset für erneute Nutzung
+                }
+            });
+            
+            console.log('✅ File Upload Event Listener hinzugefügt');
         }
 
         function setupDragAndDrop() {
@@ -2637,22 +2665,75 @@
         }
 
         function uploadPhotos() {
-            console.log('📁 uploadPhotos() aufgerufen');
-            const fileInput = document.getElementById('photo-upload');
-            if (fileInput) {
+            console.log('📁 uploadPhotos() für iOS');
+            
+            try {
+                let fileInput = document.getElementById('photo-upload');
+                
+                if (!fileInput) {
+                    // Neuen Input erstellen falls nicht gefunden
+                    fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.id = 'photo-upload-new';
+                    fileInput.accept = 'image/*';
+                    fileInput.multiple = true;
+                    fileInput.style.display = 'none';
+                    
+                    fileInput.onchange = function(e) {
+                        console.log('📸 Dateien gewählt:', e.target.files.length);
+                        if (e.target.files && e.target.files.length > 0) {
+                            processFiles(e.target.files);
+                        }
+                        document.body.removeChild(fileInput);
+                    };
+                    
+                    document.body.appendChild(fileInput);
+                }
+                
+                // Für iOS: removeAttribute capture falls gesetzt
+                fileInput.removeAttribute('capture');
+                
+                console.log('Klicke Input...');
                 fileInput.click();
-            } else {
-                console.error('❌ photo-upload Input nicht gefunden!');
-                alert('Fehler: Upload-Element nicht gefunden');
+                
+            } catch (error) {
+                console.error('❌ Fehler:', error);
+                alert('❌ Fehler: ' + error.message);
             }
         }
 
         function handlePhotoUpload(event) {
-            const files = event.target.files;
-            if (files.length > 0) {
-                processFiles(files);
+            console.log('=== handlePhotoUpload() START ===');
+            console.log('Event:', event);
+            console.log('Files:', event.target.files);
+            
+            try {
+                const files = event.target.files;
+                
+                if (!files || files.length === 0) {
+                    console.log('Keine Dateien ausgewählt');
+                    return;
+                }
+                
+                console.log('📁 Anzahl Dateien:', files.length);
+                
+                // processFiles aufrufen
+                if (typeof processFiles === 'function') {
+                    processFiles(files);
+                } else {
+                    console.error('❌ processFiles Funktion nicht gefunden!');
+                    alert('❌ processFiles fehlt!');
+                }
+                
+                // Input zurücksetzen für erneute Nutzung
+                event.target.value = '';
+                
+                console.log('=== handlePhotoUpload() ENDE ===');
+                
+            } catch (error) {
+                console.error('❌ Fehler in handlePhotoUpload():', error);
+                alert('❌ Fehler: ' + error.message);
             }
-            event.target.value = '';
         }
 
         async function processFiles(files) {
