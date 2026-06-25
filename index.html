@@ -2356,9 +2356,9 @@
         // ===== KAMERA-MANAGEMENT (iOS & Desktop optimiert) =====
 
         function startCamera() {
-            console.log('=== startCamera() START ===');
+            // console.log('=== startCamera() START ===');
             console.log('typeof isMobile:', typeof isMobile);
-            console.log('isMobile Wert:', isMobile);
+            // console.log('isMobile Wert:', isMobile);
             
             try {
                 // Prüfen ob Variable existiert
@@ -2659,7 +2659,7 @@
         }
 
         function uploadPhotos() {
-            console.log('=== uploadPhotos() START ===');
+            // console.log('=== uploadPhotos() START ===');
             
             try {
                 // Erstelle IMMER einen NEUEN Input (wie bei Kamera)
@@ -3514,6 +3514,209 @@
             }, 300);
         }
 
+        // ===== DRAG & DROP FÜR ARBEITSSCHRITTE (iOS & Desktop) =====
+
+        function setupWorkStepDragAndDrop() {
+            console.log('🔄 Setup Drag & Drop für Arbeitsschritte');
+            
+            const workStepsList = document.getElementById('work-steps-list');
+            
+            if (!workStepsList) {
+                console.log('⚠️ work-steps-list nicht gefunden');
+                return;
+            }
+            
+            const workStepItems = workStepsList.querySelectorAll('.work-step-item');
+            
+            workStepItems.forEach((step, index) => {
+                step.setAttribute('draggable', !isMobile);
+                step.dataset.index = index;
+                
+                if (!isMobile) {
+                    // Desktop Events
+                    step.addEventListener('dragstart', handleDragStart);
+                    step.addEventListener('dragover', handleDragOver);
+                    step.addEventListener('drop', handleDrop);
+                    step.addEventListener('dragenter', handleDragEnter);
+                    step.addEventListener('dragleave', handleDragLeave);
+                    step.addEventListener('dragend', handleDragEnd);
+                } else {
+                    // Mobile Touch Events
+                    step.addEventListener('touchstart', handleTouchStart, { passive: false });
+                    step.addEventListener('touchmove', handleTouchMove, { passive: false });
+                    step.addEventListener('touchend', handleTouchEnd);
+                }
+            });
+            
+            console.log(`✅ Drag & Drop aktiviert für ${workStepItems.length} Schritte`);
+        }
+
+        // Desktop Drag & Drop Handler
+        // let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            if (this === draggedElement) return;
+            
+            const rect = this.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            
+            if (e.clientY < midpoint) {
+                this.classList.add('drag-over-top');
+                this.classList.remove('drag-over-bottom');
+            } else {
+                this.classList.add('drag-over-bottom');
+                this.classList.remove('drag-over-top');
+            }
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over-top', 'drag-over-bottom');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            
+            if (draggedElement !== this) {
+                const rect = this.getBoundingClientRect();
+                const midpoint = rect.top + rect.height / 2;
+                
+                const fromIndex = parseInt(draggedElement.dataset.index);
+                const toIndex = parseInt(this.dataset.index);
+                
+                const movedStep = workSteps.splice(fromIndex, 1)[0];
+                
+                if (e.clientY < midpoint) {
+                    workSteps.splice(toIndex, 0, movedStep);
+                } else {
+                    workSteps.splice(toIndex + 1, 0, movedStep);
+                }
+                
+                saveToIndexedDB();
+                displayWorkSteps();
+            }
+            
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.work-step-item').forEach(item => {
+                item.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+        }
+
+        // Mobile Touch Handler
+        let touchStartY = 0;
+        let touchElement = null;
+        let touchClone = null;
+        let touchStartIndex = 0;
+
+        function handleTouchStart(e) {
+            touchElement = this;
+            touchStartIndex = parseInt(this.dataset.index);
+            touchStartY = e.touches[0].clientY;
+            
+            this.style.opacity = '0.5';
+            
+            touchClone = this.cloneNode(true);
+            touchClone.style.position = 'fixed';
+            touchClone.style.width = this.offsetWidth + 'px';
+            touchClone.style.left = this.getBoundingClientRect().left + 'px';
+            touchClone.style.top = e.touches[0].clientY - (this.offsetHeight / 2) + 'px';
+            touchClone.style.opacity = '0.8';
+            touchClone.style.transform = 'rotate(3deg) scale(1.05)';
+            touchClone.style.zIndex = '9999';
+            touchClone.style.pointerEvents = 'none';
+            touchClone.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+            
+            document.body.appendChild(touchClone);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            
+            if (!touchClone) return;
+            
+            const touch = e.touches[0];
+            touchClone.style.top = touch.clientY - (touchElement.offsetHeight / 2) + 'px';
+            
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const stepBelow = elementBelow?.closest('.work-step-item');
+            
+            document.querySelectorAll('.work-step-item').forEach(item => {
+                item.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+            
+            if (stepBelow && stepBelow !== touchElement) {
+                const rect = stepBelow.getBoundingClientRect();
+                const midpoint = rect.top + rect.height / 2;
+                
+                if (touch.clientY < midpoint) {
+                    stepBelow.classList.add('drag-over-top');
+                } else {
+                    stepBelow.classList.add('drag-over-bottom');
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchElement) return;
+            
+            touchElement.style.opacity = '1';
+            
+            const touch = e.changedTouches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const stepBelow = elementBelow?.closest('.work-step-item');
+            
+            if (stepBelow && stepBelow !== touchElement) {
+                const rect = stepBelow.getBoundingClientRect();
+                const midpoint = rect.top + rect.height / 2;
+                
+                const fromIndex = touchStartIndex;
+                const toIndex = parseInt(stepBelow.dataset.index);
+                
+                const movedStep = workSteps.splice(fromIndex, 1)[0];
+                
+                if (touch.clientY < midpoint) {
+                    workSteps.splice(toIndex, 0, movedStep);
+                } else {
+                    workSteps.splice(toIndex + 1, 0, movedStep);
+                }
+                
+                saveToIndexedDB();
+                displayWorkSteps();
+                
+                if (typeof showToast === 'function') {
+                    showToast('✅ Reihenfolge geändert');
+                }
+            }
+            
+            if (touchClone) {
+                document.body.removeChild(touchClone);
+                touchClone = null;
+            }
+            
+            document.querySelectorAll('.work-step-item').forEach(item => {
+                item.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+            
+            touchElement = null;
+        }
+
+
         function displayWorkSteps() {
             const list = document.getElementById('work-steps-list');
             
@@ -3562,6 +3765,10 @@
                 `;
                 list.appendChild(stepItem);
             });
+
+            updateAllCounts();
+
+            setupWorkStepDragAndDrop();
         }
 
         function editWorkStep(index) {
