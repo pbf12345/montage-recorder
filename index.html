@@ -1505,6 +1505,24 @@
     </div>
 
     <script>
+        'use strict';
+        
+        console.log('🚀 Script lädt...');
+        
+        // ===== GERÄTE-ERKENNUNG (MUSS GANZ OBEN SEIN!) =====
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isMobile = isIOS || isAndroid;
+        const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+        
+        console.log('📱 Gerät erkannt:', {
+            isIOS: isIOS,
+            isAndroid: isAndroid,
+            isMobile: isMobile,
+            userAgent: navigator.userAgent
+        });
+        
+       
         
         // ===== GLOBALE VARIABLEN =====
         let currentWorkStep = 1;
@@ -1545,6 +1563,8 @@
 
         // ===== LOGO FÜR POWERPOINT EXPORT =====
         const companyLogo = 'data:image/png;base64,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';
+        
+        
         // ===== INDEXEDDB FUNKTIONEN =====
         async function initIndexedDB() {
             return new Promise((resolve, reject) => {
@@ -2332,110 +2352,62 @@
 
         // ===== KAMERA-MANAGEMENT (iOS & Desktop optimiert) =====
 
-        // Geräte-Erkennung
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        const isMobile = isIOS || isAndroid;
-        const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-
-        async function startCamera() {
-            console.log('📷 startCamera() aufgerufen, isMobile:', isMobile);
-            
-            // Mobile: NUR native Kamera (kein Video-Stream)
-            if (isMobile) {
-                console.log('📱 Mobile erkannt - öffne native Kamera');
-                
-                let fileInput = document.getElementById('photo-upload');
-                
-                if (!fileInput) {
-                    fileInput = document.createElement('input');
-                    fileInput.type = 'file';
-                    fileInput.id = 'photo-upload-camera';
-                    fileInput.accept = 'image/*';
-                    fileInput.multiple = true;
-                    fileInput.style.display = 'none';
-                    document.body.appendChild(fileInput);
-                    
-                    fileInput.addEventListener('change', async (e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                            console.log('📸 Fotos ausgewählt:', e.target.files.length);
-                            await processFiles(e.target.files);
-                            e.target.value = '';
-                        }
-                    });
-                }
-                
-                // Native Kamera öffnen
-                fileInput.setAttribute('capture', 'environment');
-                fileInput.click();
-                
-                setTimeout(() => {
-                    fileInput.removeAttribute('capture');
-                }, 1000);
-                
-                return; // WICHTIG: Hier stoppen für Mobile!
-            }
-            
-            // Desktop: WebRTC-Stream mit Live-Vorschau
-            console.log('🖥️ Desktop erkannt - starte WebRTC');
+        function startCamera() {
+            console.log('=== startCamera() START ===');
+            console.log('typeof isMobile:', typeof isMobile);
+            console.log('isMobile Wert:', isMobile);
             
             try {
-                const videoElement = document.getElementById('camera-video');
-                const canvasElement = document.getElementById('photo-canvas');
-                const statusDot = document.getElementById('status-dot');
-                const statusText = document.getElementById('camera-status-text');
-                const captureButton = document.getElementById('capture-button');
-                
-                if (!videoElement || !canvasElement) {
-                    console.error('❌ Kamera-Elemente nicht gefunden');
-                    alert('⚠️ Kamera-Elemente fehlen im HTML');
+                // Prüfen ob Variable existiert
+                if (typeof isMobile === 'undefined') {
+                    alert('❌ FEHLER: isMobile nicht definiert!');
+                    console.error('isMobile ist undefined');
                     return;
                 }
                 
-                // Status: Laden
-                if (statusText) statusText.textContent = 'Kamera wird gestartet...';
-                if (statusDot) statusDot.className = 'status-dot status-inactive';
-                
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    }
-                });
-                
-                videoElement.srcObject = stream;
-                videoElement.style.display = 'block';
-                await videoElement.play();
-                
-                window.currentCameraStream = stream;
-                
-                // Status: Aktiv
-                if (statusText) statusText.textContent = 'Kamera aktiv';
-                if (statusDot) statusDot.className = 'status-dot status-active';
-                if (captureButton) captureButton.disabled = false;
-                
-                console.log('✅ Desktop-Kamera gestartet');
-                
-            } catch (error) {
-                console.error('❌ Kamera-Zugriff fehlgeschlagen:', error);
-                
-                let errorMessage = 'Kamera-Zugriff fehlgeschlagen.';
-                
-                if (error.name === 'NotAllowedError') {
-                    errorMessage = 'Kamera-Zugriff wurde verweigert. Bitte erlaube den Zugriff in den Browser-Einstellungen.';
-                } else if (error.name === 'NotFoundError') {
-                    errorMessage = 'Keine Kamera gefunden.';
-                } else if (error.name === 'NotReadableError') {
-                    errorMessage = 'Kamera wird bereits verwendet.';
+                // Mobile: Native Kamera
+                if (isMobile) {
+                    console.log('📱 Mobile erkannt - erstelle Input');
+                    
+                    // NEUEN Input erstellen
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.capture = 'environment';
+                    input.multiple = true;
+                    
+                    console.log('Input erstellt:', input);
+                    
+                    // Change Event
+                    input.onchange = function(e) {
+                        console.log('📸 onChange - Dateien:', e.target.files.length);
+                        
+                        if (e.target.files && e.target.files.length > 0) {
+                            // Prüfen ob processFiles existiert
+                            if (typeof processFiles === 'function') {
+                                processFiles(e.target.files);
+                            } else {
+                                alert('❌ processFiles Funktion nicht gefunden!');
+                                console.error('processFiles existiert nicht');
+                            }
+                        }
+                    };
+                    
+                    // Direkt klicken (ohne appendChild für iOS)
+                    console.log('Klicke Input...');
+                    input.click();
+                    
+                    console.log('=== startCamera() ENDE (Mobile) ===');
+                    return;
                 }
                 
-                alert('⚠️ ' + errorMessage);
+                // Desktop: WebRTC
+                console.log('🖥️ Desktop erkannt');
+                alert('Desktop-Kamera noch nicht implementiert - bitte Upload nutzen');
                 
-                const statusText = document.getElementById('camera-status-text');
-                const statusDot = document.getElementById('status-dot');
-                if (statusText) statusText.textContent = 'Fehler';
-                if (statusDot) statusDot.className = 'status-dot status-inactive';
+            } catch (error) {
+                console.error('❌ FEHLER in startCamera():', error);
+                alert('❌ Fehler: ' + error.message);
             }
         }
 
@@ -2665,7 +2637,14 @@
         }
 
         function uploadPhotos() {
-            document.getElementById('photo-upload').click();
+            console.log('📁 uploadPhotos() aufgerufen');
+            const fileInput = document.getElementById('photo-upload');
+            if (fileInput) {
+                fileInput.click();
+            } else {
+                console.error('❌ photo-upload Input nicht gefunden!');
+                alert('Fehler: Upload-Element nicht gefunden');
+            }
         }
 
         function handlePhotoUpload(event) {
