@@ -3777,18 +3777,17 @@
         // ===== MOBILE TOUCH EVENTS =====
 
         function handleTouchStart(e) {
-            // Events sind bereits NUR am Handle, aber zur Sicherheit:
             e.preventDefault();
             e.stopPropagation();
             
             console.log('✅ Drag Handle berührt');
             
             // Visuelles Feedback am Handle
-            e.target.style.color = 'var(--hoermann-orange)';
-            e.target.style.transform = 'scale(1.2)';
+            this.style.color = 'var(--hoermann-orange)';
+            this.style.transform = 'scale(1.2)';
             
             // Finde das work-step-item
-            touchElement = e.target.closest('.work-step-item');
+            touchElement = this.closest('.work-step-item');
             
             if (!touchElement) {
                 console.log('❌ work-step-item nicht gefunden');
@@ -3797,6 +3796,8 @@
             
             touchStartIndex = parseInt(touchElement.dataset.stepIndex);
             touchStartY = e.touches[0].clientY;
+            
+            console.log('📦 Start-Index:', touchStartIndex);
             
             // Visuelles Feedback am Item
             touchElement.style.opacity = '0.5';
@@ -3817,7 +3818,11 @@
             
             document.body.appendChild(touchClone);
             
-            console.log('👆 Drag gestartet - Schritt:', touchStartIndex);
+            // WICHTIG: touchmove und touchend global auf document registrieren!
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd, { passive: false });
+            
+            console.log('👆 Drag gestartet - Events registriert');
         }
 
         function handleTouchMove(e) {
@@ -3856,11 +3861,23 @@
         }
 
         function handleTouchEnd(e) {
-            if (!touchElement) return;
+            console.log('=== TOUCH END ===');
+            
+            if (!touchElement) {
+                console.log('⚠️ Kein touchElement');
+                return;
+            }
             
             // Original-Element zurücksetzen
             touchElement.style.opacity = '1';
             touchElement.style.transform = 'scale(1)';
+            
+            // Drag-Handle zurücksetzen
+            const handle = touchElement.querySelector('.drag-handle');
+            if (handle) {
+                handle.style.color = '';
+                handle.style.transform = '';
+            }
             
             const touch = e.changedTouches[0];
             
@@ -3871,6 +3888,8 @@
             const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
             const stepBelow = elementBelow?.closest('.work-step-item');
             
+            console.log('📍 Element unter Finger:', stepBelow?.dataset.stepIndex);
+            
             // Reihenfolge ändern
             if (stepBelow && stepBelow !== touchElement) {
                 const rect = stepBelow.getBoundingClientRect();
@@ -3879,19 +3898,25 @@
                 const fromIndex = touchStartIndex;
                 const toIndex = parseInt(stepBelow.dataset.stepIndex);
                 
-                console.log(`📦 Verschiebe von ${fromIndex} nach ${toIndex}`);
+                console.log(`📦 Verschiebe von Index ${fromIndex} nach ${toIndex}`);
                 
                 // Array umordnen
                 const movedStep = workSteps.splice(fromIndex, 1)[0];
                 
                 if (touch.clientY < midpoint) {
+                    console.log('⬆️ Einfügen VOR Schritt', toIndex);
                     workSteps.splice(toIndex, 0, movedStep);
                 } else {
+                    console.log('⬇️ Einfügen NACH Schritt', toIndex);
                     workSteps.splice(toIndex + 1, 0, movedStep);
                 }
                 
                 // Schrittnummern aktualisieren
-                workSteps.forEach((s, i) => s.stepNumber = i + 1);
+                workSteps.forEach((s, i) => {
+                    s.stepNumber = i + 1;
+                });
+                
+                console.log('💾 Speichere und aktualisiere...');
                 
                 // Speichern & Anzeigen
                 saveToIndexedDB();
@@ -3902,7 +3927,9 @@
                     showToast('✅ Reihenfolge geändert');
                 }
                 
-                console.log('✅ Reihenfolge gespeichert');
+                console.log('✅ Fertig!');
+            } else {
+                console.log('❌ Keine Verschiebung (gleiches Element oder kein Ziel)');
             }
             
             // Cleanup
@@ -3915,7 +3942,13 @@
                 item.classList.remove('drag-over-top', 'drag-over-bottom');
             });
             
+            // WICHTIG: Event Listener wieder entfernen!
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+            
             touchElement = null;
+            
+            console.log('🧹 Cleanup abgeschlossen');
         }
 
         function handleTouchStart(e) {
@@ -4084,10 +4117,9 @@
                     const dragHandle = stepItem.querySelector('.drag-handle');
                     
                     if (dragHandle) {
-                        // Events EXKLUSIV am Handle
+                        // NUR touchstart am Handle
+                        // move und end werden in handleTouchStart dynamisch auf document registriert
                         dragHandle.addEventListener('touchstart', handleTouchStart, { passive: false });
-                        dragHandle.addEventListener('touchmove', handleTouchMove, { passive: false });
-                        dragHandle.addEventListener('touchend', handleTouchEnd, { passive: false });
                     }
                 }
                 
