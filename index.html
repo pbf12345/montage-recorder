@@ -1493,6 +1493,14 @@
         let cameraStream = null;
         let speechRecognition = null;
         let draggedElement = null;
+
+        // Touch Drag & Drop Variablen
+        let touchStartY = 0;
+        let touchElement = null;
+        let touchClone = null;
+        let touchStartIndex = 0;
+
+
         let cameraInitialized = false;
         let autoSaveTimer = null;
 
@@ -3613,16 +3621,142 @@
 
         function handleDragEnd(e) {
             this.classList.remove('dragging');
-            document.querySelectorAll('.work-step-item').forEach(item => {
-                item.classList.remove('drag-over-top', 'drag-over-bottom');
+            document.querySelectorAll('.work-step-item').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
             });
         }
 
-        // Mobile Touch Handler
-        let touchStartY = 0;
-        let touchElement = null;
-        let touchClone = null;
-        let touchStartIndex = 0;
+        // ===== MOBILE TOUCH EVENTS =====
+
+        function handleTouchStart(e) {
+            // Verhindere, dass Buttons im Item geklickt werden
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                return;
+            }
+            
+            touchElement = this;
+            touchStartIndex = parseInt(this.dataset.stepIndex);
+            touchStartY = e.touches[0].clientY;
+            
+            // Visuelles Feedback
+            this.style.opacity = '0.5';
+            this.style.transform = 'scale(0.98)';
+            
+            // Clone erstellen
+            touchClone = this.cloneNode(true);
+            touchClone.style.position = 'fixed';
+            touchClone.style.width = this.offsetWidth + 'px';
+            touchClone.style.left = this.getBoundingClientRect().left + 'px';
+            touchClone.style.top = e.touches[0].clientY - (this.offsetHeight / 2) + 'px';
+            touchClone.style.opacity = '0.9';
+            touchClone.style.transform = 'rotate(2deg) scale(1.05)';
+            touchClone.style.zIndex = '9999';
+            touchClone.style.pointerEvents = 'none';
+            touchClone.style.boxShadow = '0 15px 40px rgba(0,0,0,0.4)';
+            touchClone.style.transition = 'none';
+            
+            document.body.appendChild(touchClone);
+            
+            console.log('👆 Touch Start - Schritt:', touchStartIndex);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            
+            if (!touchClone || !touchElement) return;
+            
+            const touch = e.touches[0];
+            
+            // Clone bewegen
+            touchClone.style.top = touch.clientY - (touchElement.offsetHeight / 2) + 'px';
+            
+            // Element unter dem Finger finden
+            touchClone.style.display = 'none';
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            touchClone.style.display = 'block';
+            
+            const stepBelow = elementBelow?.closest('.work-step-item');
+            
+            // Alle Highlights entfernen
+            document.querySelectorAll('.work-step-item').forEach(item => {
+                item.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+            
+            // Neues Highlight setzen
+            if (stepBelow && stepBelow !== touchElement) {
+                const rect = stepBelow.getBoundingClientRect();
+                const midpoint = rect.top + rect.height / 2;
+                
+                if (touch.clientY < midpoint) {
+                    stepBelow.classList.add('drag-over-top');
+                } else {
+                    stepBelow.classList.add('drag-over-bottom');
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchElement) return;
+            
+            // Original-Element zurücksetzen
+            touchElement.style.opacity = '1';
+            touchElement.style.transform = 'scale(1)';
+            
+            const touch = e.changedTouches[0];
+            
+            // Element unter dem Finger finden
+            if (touchClone) {
+                touchClone.style.display = 'none';
+            }
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const stepBelow = elementBelow?.closest('.work-step-item');
+            
+            // Reihenfolge ändern
+            if (stepBelow && stepBelow !== touchElement) {
+                const rect = stepBelow.getBoundingClientRect();
+                const midpoint = rect.top + rect.height / 2;
+                
+                const fromIndex = touchStartIndex;
+                const toIndex = parseInt(stepBelow.dataset.stepIndex);
+                
+                console.log(`📦 Verschiebe von ${fromIndex} nach ${toIndex}`);
+                
+                // Array umordnen
+                const movedStep = workSteps.splice(fromIndex, 1)[0];
+                
+                if (touch.clientY < midpoint) {
+                    workSteps.splice(toIndex, 0, movedStep);
+                } else {
+                    workSteps.splice(toIndex + 1, 0, movedStep);
+                }
+                
+                // Schrittnummern aktualisieren
+                workSteps.forEach((s, i) => s.stepNumber = i + 1);
+                
+                // Speichern & Anzeigen
+                saveToIndexedDB();
+                displayWorkSteps();
+                
+                // Toast anzeigen
+                if (typeof showToast === 'function') {
+                    showToast('✅ Reihenfolge geändert');
+                }
+                
+                console.log('✅ Reihenfolge gespeichert');
+            }
+            
+            // Cleanup
+            if (touchClone && touchClone.parentNode) {
+                document.body.removeChild(touchClone);
+            }
+            touchClone = null;
+            
+            document.querySelectorAll('.work-step-item').forEach(item => {
+                item.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+            
+            touchElement = null;
+        }
 
         function handleTouchStart(e) {
             touchElement = this;
@@ -3732,11 +3866,22 @@
                 stepItem.draggable = true;
                 stepItem.dataset.stepIndex = index;
                 
-                stepItem.addEventListener('dragstart', handleDragStart);
-                stepItem.addEventListener('dragend', handleDragEnd);
-                stepItem.addEventListener('dragover', handleDragOver);
-                stepItem.addEventListener('drop', handleDrop);
-                stepItem.addEventListener('dragleave', handleDragLeave);
+                // Desktop: Drag & Drop
+                if (!isMobile) {
+                    stepItem.setAttribute('draggable', true);
+                    stepItem.addEventListener('dragstart', handleDragStart);
+                    stepItem.addEventListener('dragend', handleDragEnd);
+                    stepItem.addEventListener('dragover', handleDragOver);
+                    stepItem.addEventListener('drop', handleDrop);
+                    stepItem.addEventListener('dragleave', handleDragLeave);
+                }
+                // Mobile: Touch Events
+                else {
+                    stepItem.setAttribute('draggable', false);
+                    stepItem.addEventListener('touchstart', handleTouchStart, { passive: false });
+                    stepItem.addEventListener('touchmove', handleTouchMove, { passive: false });
+                    stepItem.addEventListener('touchend', handleTouchEnd);
+                }
                 
                 let toolsLine = step.toolsString ? `<div style="margin: 8px 0; padding: 6px 10px; background: rgba(235, 187, 215, 0.3); border-radius: 6px; font-size: 0.9rem;">🔧 ${step.toolsString}</div>` : '';
                 let warningLine = step.warning ? `<div style="margin: 8px 0; padding: 6px 10px; background: rgba(255, 243, 205, 0.5); border-radius: 6px; font-size: 0.9rem; border-left: 3px solid var(--warning-yellow);">⚠️ ${step.warning.substring(0, 80)}${step.warning.length > 80 ? '...' : ''}</div>` : '';
@@ -3768,7 +3913,6 @@
 
             updateAllCounts();
 
-            setupWorkStepDragAndDrop();
         }
 
         function editWorkStep(index) {
