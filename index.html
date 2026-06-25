@@ -672,6 +672,113 @@
             transform: scale(1.1);
         }
 
+
+        .upload-zone:hover {
+            border-color: var(--hoermann-orange);
+            background: rgba(255, 130, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* === KOMPAKTE ARBEITSSCHRITTE FÜR MOBILE === */
+        @media (max-width: 768px) {
+            .work-step-item {
+                padding: 8px 10px;
+                margin-bottom: 6px;
+                border-radius: 10px;
+            }
+            
+            .work-step-item h4 {
+                font-size: 0.9rem;
+                margin-bottom: 4px;
+                font-weight: 600;
+            }
+            
+            .work-step-item p {
+                font-size: 0.8rem !important;
+                margin: 3px 0 !important;
+                line-height: 1.2 !important;
+            }
+            
+            /* Alle inneren Divs kompakter */
+            .work-step-item > div {
+                margin: 3px 0 !important;
+            }
+            
+            /* Werkzeug/Warnungs-Boxen */
+            .work-step-item div[style*="background"] {
+                padding: 4px 8px !important;
+                margin: 3px 0 !important;
+                font-size: 0.75rem !important;
+                border-radius: 6px !important;
+            }
+            
+            /* Button-Reihe am Ende */
+            .work-step-item > div:last-child {
+                margin-top: 5px !important;
+                padding-top: 5px !important;
+            }
+            
+            /* Buttons kleiner */
+            .work-step-item .btn {
+                padding: 4px 8px !important;
+                font-size: 0.75rem !important;
+                margin: 0 2px !important;
+            }
+            
+            .work-step-item .btn-edit,
+            .work-step-item .btn-danger {
+                padding: 4px 8px !important;
+                font-size: 0.75rem !important;
+            }
+            
+            /* Datum/Info kleiner */
+            .work-step-item small {
+                font-size: 0.7rem !important;
+            }
+            
+            /* Icons/Badges kompakter */
+            .work-step-item span {
+                font-size: 0.75rem !important;
+            }
+            
+            /* Drag-Handle */
+            .drag-handle {
+                font-size: 1rem;
+                margin-right: 6px;
+            }
+            
+            /* Hover-Effekt auf Mobile entfernen */
+            .work-step-item:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+
+        /* Sehr kleine Displays (iPhone SE, etc.) */
+        @media (max-width: 380px) {
+            .work-step-item {
+                padding: 6px 8px;
+                margin-bottom: 5px;
+            }
+            
+            .work-step-item h4 {
+                font-size: 0.85rem;
+            }
+            
+            .work-step-item p {
+                font-size: 0.75rem !important;
+            }
+            
+            .work-step-item .btn {
+                padding: 3px 6px !important;
+                font-size: 0.7rem !important;
+            }
+            
+            .drag-handle {
+                font-size: 0.9rem;
+            }
+        }
+
         .materials-list {
             margin-top: 20px;
         }
@@ -3883,10 +3990,10 @@
                     stepItem.addEventListener('touchend', handleTouchEnd);
                 }
                 
-                let toolsLine = step.toolsString ? `<div style="margin: 8px 0; padding: 6px 10px; background: rgba(235, 187, 215, 0.3); border-radius: 6px; font-size: 0.9rem;">🔧 ${step.toolsString}</div>` : '';
-                let warningLine = step.warning ? `<div style="margin: 8px 0; padding: 6px 10px; background: rgba(255, 243, 205, 0.5); border-radius: 6px; font-size: 0.9rem; border-left: 3px solid var(--warning-yellow);">⚠️ ${step.warning.substring(0, 80)}${step.warning.length > 80 ? '...' : ''}</div>` : '';
+                let toolsLine = step.toolsString ? `<div style="margin: 4px 0; padding: 4px 8px; background: rgba(235, 187, 215, 0.3); border-radius: 6px; font-size: 0.8rem;">🔧 ${step.toolsString.substring(0, 40)}${step.toolsString.length > 40 ? '...' : ''}</div>` : '';
+                let warningLine = step.warning ? `<div style="margin: 4px 0; padding: 4px 8px; background: rgba(255, 243, 205, 0.5); border-radius: 6px; font-size: 0.75rem; border-left: 2px solid var(--warning-yellow);">⚠️ ${step.warning.substring(0, 35)}${step.warning.length > 35 ? '...' : ''}</div>` : '';
                 let instructionsText = step.instructions || 'Keine Hinweise';
-                if (instructionsText.length > 100) instructionsText = instructionsText.substring(0, 100) + '...';
+                if (instructionsText.length > 60) instructionsText = instructionsText.substring(0, 60) + '...';
                 
                 stepItem.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
