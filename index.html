@@ -3777,26 +3777,17 @@
         // ===== MOBILE TOUCH EVENTS =====
 
         function handleTouchStart(e) {
-            // ========================================
-            // WICHTIG: NUR am Drag-Handle erlauben!
-            // ========================================
-            
-            // Prüfe ob das Drag-Handle geklickt wurde
-            if (!e.target.classList.contains('drag-handle')) {
-                console.log('❌ Nicht am Handle geklickt - kein Drag');
-                return; // ABBRECHEN - kein Drag erlaubt!
-            }
-            
-            console.log('✅ Drag-Handle geklickt - Drag erlaubt');
-            
-            // Verhindere Standard-Verhalten
+            // Events sind bereits NUR am Handle, aber zur Sicherheit:
             e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('✅ Drag Handle berührt');
             
             // Visuelles Feedback am Handle
             e.target.style.color = 'var(--hoermann-orange)';
             e.target.style.transform = 'scale(1.2)';
             
-            // Finde das übergeordnete work-step-item
+            // Finde das work-step-item
             touchElement = e.target.closest('.work-step-item');
             
             if (!touchElement) {
@@ -3807,11 +3798,11 @@
             touchStartIndex = parseInt(touchElement.dataset.stepIndex);
             touchStartY = e.touches[0].clientY;
             
-            // Visuelles Feedback am ganzen Item
+            // Visuelles Feedback am Item
             touchElement.style.opacity = '0.5';
             touchElement.style.transform = 'scale(0.98)';
             
-            // Clone erstellen für visuelles Dragging
+            // Clone erstellen
             touchClone = touchElement.cloneNode(true);
             touchClone.style.position = 'fixed';
             touchClone.style.width = touchElement.offsetWidth + 'px';
@@ -3826,7 +3817,7 @@
             
             document.body.appendChild(touchClone);
             
-            console.log('👆 Touch Start - Schritt:', touchStartIndex);
+            console.log('👆 Drag gestartet - Schritt:', touchStartIndex);
         }
 
         function handleTouchMove(e) {
@@ -4043,7 +4034,6 @@
             workSteps.forEach((step, index) => {
                 const stepItem = document.createElement('div');
                 stepItem.className = 'work-step-item fade-in';
-                stepItem.draggable = true;
                 stepItem.dataset.stepIndex = index;
                 
                 // Desktop: Drag & Drop
@@ -4054,19 +4044,14 @@
                     stepItem.addEventListener('dragover', handleDragOver);
                     stepItem.addEventListener('drop', handleDrop);
                     stepItem.addEventListener('dragleave', handleDragLeave);
-                }
-                // Mobile: Touch Events NUR am Handle, nicht am ganzen Item!
+                } 
+                // Mobile: Keine Events am stepItem!
                 else {
                     stepItem.setAttribute('draggable', false);
-                    
-                    // WICHTIG: Events werden in handleTouchStart geprüft
-                    // Passive: true erlaubt normales Scrollen
-                    stepItem.addEventListener('touchstart', handleTouchStart, { passive: true });
-                    stepItem.addEventListener('touchmove', handleTouchMove, { passive: false });
-                    stepItem.addEventListener('touchend', handleTouchEnd, { passive: true });
                 }
                 
-                let toolsLine = step.toolsString ? `<div style="margin: 4px 0; padding: 4px 8px; background: rgba(235, 187, 215, 0.3); border-radius: 6px; font-size: 0.8rem;">🔧 ${step.toolsString.substring(0, 40)}${step.toolsString.length > 40 ? '...' : ''}</div>` : '';
+                // HTML erstellen
+                let toolsLine = '';
                 let warningLine = step.warning ? `<div style="margin: 4px 0; padding: 4px 8px; background: rgba(255, 243, 205, 0.5); border-radius: 6px; font-size: 0.75rem; border-left: 2px solid var(--warning-yellow);">⚠️ ${step.warning.substring(0, 35)}${step.warning.length > 35 ? '...' : ''}</div>` : '';
                 let instructionsText = step.instructions || 'Keine Hinweise';
                 if (instructionsText.length > 60) instructionsText = instructionsText.substring(0, 60) + '...';
@@ -4084,13 +4069,28 @@
                     ${toolsLine}
                     ${warningLine}
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0, 59, 122, 0.1);">
-                        <small style="color: var(--text-light);">📅 ${step.timestamp}</small>
+                        <small style="color: var(--text-light); font-size: 0.8rem; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${step.toolsString ? '🔧 ' + step.toolsString : '🔧 Kein Werkzeug'}
+                        </small>
                         <div>
                             <button class="btn btn-edit" onclick="editWorkStep(${index})" style="padding: 6px 12px; font-size: 0.85rem; margin: 0;">✏️</button>
                             <button class="btn btn-danger" onclick="deleteWorkStep(${index})" style="padding: 6px 12px; font-size: 0.85rem; margin: 0;">🗑️</button>
                         </div>
                     </div>
                 `;
+                
+                // === MOBILE: Touch Events NUR am Drag-Handle! ===
+                if (isMobile) {
+                    const dragHandle = stepItem.querySelector('.drag-handle');
+                    
+                    if (dragHandle) {
+                        // Events EXKLUSIV am Handle
+                        dragHandle.addEventListener('touchstart', handleTouchStart, { passive: false });
+                        dragHandle.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        dragHandle.addEventListener('touchend', handleTouchEnd, { passive: false });
+                    }
+                }
+                
                 list.appendChild(stepItem);
             });
 
