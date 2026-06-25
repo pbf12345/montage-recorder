@@ -2659,40 +2659,38 @@
         }
 
         function uploadPhotos() {
-            console.log('📁 uploadPhotos() für iOS');
+            console.log('=== uploadPhotos() START ===');
             
             try {
-                let fileInput = document.getElementById('photo-upload');
+                // Erstelle IMMER einen NEUEN Input (wie bei Kamera)
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.multiple = true;
                 
-                if (!fileInput) {
-                    // Neuen Input erstellen falls nicht gefunden
-                    fileInput = document.createElement('input');
-                    fileInput.type = 'file';
-                    fileInput.id = 'photo-upload-new';
-                    fileInput.accept = 'image/*';
-                    fileInput.multiple = true;
-                    fileInput.style.display = 'none';
+                console.log('Neuer Input erstellt');
+                
+                input.onchange = function(e) {
+                    console.log('📁 Dateien ausgewählt:', e.target.files.length);
                     
-                    fileInput.onchange = function(e) {
-                        console.log('📸 Dateien gewählt:', e.target.files.length);
-                        if (e.target.files && e.target.files.length > 0) {
+                    if (e.target.files && e.target.files.length > 0) {
+                        if (typeof processFiles === 'function') {
                             processFiles(e.target.files);
+                        } else {
+                            alert('❌ processFiles nicht gefunden');
                         }
-                        document.body.removeChild(fileInput);
-                    };
-                    
-                    document.body.appendChild(fileInput);
-                }
+                    }
+                };
                 
-                // Für iOS: removeAttribute capture falls gesetzt
-                fileInput.removeAttribute('capture');
-                
+                // Direkt klicken (ohne appendChild für iOS)
                 console.log('Klicke Input...');
-                fileInput.click();
+                input.click();
+                
+                console.log('=== uploadPhotos() ENDE ===');
                 
             } catch (error) {
                 console.error('❌ Fehler:', error);
-                alert('❌ Fehler: ' + error.message);
+                alert('Fehler: ' + error.message);
             }
         }
 
