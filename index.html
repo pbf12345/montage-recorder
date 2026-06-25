@@ -703,6 +703,25 @@
 
         /* === KOMPAKTE ARBEITSSCHRITTE FÜR MOBILE === */
         @media (max-width: 768px) {
+            .drag-handle {
+                font-size: 1.2rem;
+                padding: 12px 15px;
+                margin: -12px -10px;
+                cursor: grab;
+                -webkit-tap-highlight-color: rgba(255, 130, 0, 0.2);
+                /* Visuell hervorheben */
+                background: rgba(0, 59, 122, 0.05);
+                border-radius: 8px;
+            }
+            
+            .drag-handle:active {
+                color: var(--hoermann-orange);
+                transform: scale(1.15);
+                background: rgba(255, 130, 0, 0.1);
+            }
+        }
+        
+        @media (max-width: 768px) {
             .work-step-item {
                 padding: 8px 10px;
                 margin-bottom: 6px;
@@ -3758,23 +3777,32 @@
         // ===== MOBILE TOUCH EVENTS =====
 
         function handleTouchStart(e) {
-            // NUR am Drag-Handle erlauben!
+            // ========================================
+            // WICHTIG: NUR am Drag-Handle erlauben!
+            // ========================================
+            
+            // Prüfe ob das Drag-Handle geklickt wurde
             if (!e.target.classList.contains('drag-handle')) {
-                return;
+                console.log('❌ Nicht am Handle geklickt - kein Drag');
+                return; // ABBRECHEN - kein Drag erlaubt!
             }
             
-            // Verhindere, dass Buttons geklickt werden
-            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                return;
-            }
+            console.log('✅ Drag-Handle geklickt - Drag erlaubt');
+            
+            // Verhindere Standard-Verhalten
+            e.preventDefault();
             
             // Visuelles Feedback am Handle
             e.target.style.color = 'var(--hoermann-orange)';
             e.target.style.transform = 'scale(1.2)';
             
+            // Finde das übergeordnete work-step-item
             touchElement = e.target.closest('.work-step-item');
             
-            if (!touchElement) return;
+            if (!touchElement) {
+                console.log('❌ work-step-item nicht gefunden');
+                return;
+            }
             
             touchStartIndex = parseInt(touchElement.dataset.stepIndex);
             touchStartY = e.touches[0].clientY;
@@ -3782,14 +3810,13 @@
             // Visuelles Feedback am ganzen Item
             touchElement.style.opacity = '0.5';
             touchElement.style.transform = 'scale(0.98)';
-        
-                    
-            // Clone erstellen
-            touchClone = this.cloneNode(true);
+            
+            // Clone erstellen für visuelles Dragging
+            touchClone = touchElement.cloneNode(true);
             touchClone.style.position = 'fixed';
-            touchClone.style.width = this.offsetWidth + 'px';
-            touchClone.style.left = this.getBoundingClientRect().left + 'px';
-            touchClone.style.top = e.touches[0].clientY - (this.offsetHeight / 2) + 'px';
+            touchClone.style.width = touchElement.offsetWidth + 'px';
+            touchClone.style.left = touchElement.getBoundingClientRect().left + 'px';
+            touchClone.style.top = e.touches[0].clientY - (touchElement.offsetHeight / 2) + 'px';
             touchClone.style.opacity = '0.9';
             touchClone.style.transform = 'rotate(2deg) scale(1.05)';
             touchClone.style.zIndex = '9999';
@@ -3922,20 +3949,31 @@
         }
 
         function handleTouchMove(e) {
-            e.preventDefault();
+            // NUR bewegen wenn touchElement gesetzt ist (Handle wurde geklickt)
+            if (!touchElement || !touchClone) {
+                return; // Kein Drag aktiv
+            }
             
-            if (!touchClone) return;
+            e.preventDefault(); // Verhindere Scrollen während Drag
             
             const touch = e.touches[0];
+            
+            // Clone bewegen
             touchClone.style.top = touch.clientY - (touchElement.offsetHeight / 2) + 'px';
             
+            // Element unter dem Finger finden
+            touchClone.style.display = 'none';
             const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            touchClone.style.display = 'block';
+            
             const stepBelow = elementBelow?.closest('.work-step-item');
             
+            // Alle Highlights entfernen
             document.querySelectorAll('.work-step-item').forEach(item => {
                 item.classList.remove('drag-over-top', 'drag-over-bottom');
             });
             
+            // Neues Highlight setzen
             if (stepBelow && stepBelow !== touchElement) {
                 const rect = stepBelow.getBoundingClientRect();
                 const midpoint = rect.top + rect.height / 2;
@@ -4017,12 +4055,15 @@
                     stepItem.addEventListener('drop', handleDrop);
                     stepItem.addEventListener('dragleave', handleDragLeave);
                 }
-                // Mobile: Touch Events
+                // Mobile: Touch Events NUR am Handle, nicht am ganzen Item!
                 else {
                     stepItem.setAttribute('draggable', false);
-                    stepItem.addEventListener('touchstart', handleTouchStart, { passive: false });
+                    
+                    // WICHTIG: Events werden in handleTouchStart geprüft
+                    // Passive: true erlaubt normales Scrollen
+                    stepItem.addEventListener('touchstart', handleTouchStart, { passive: true });
                     stepItem.addEventListener('touchmove', handleTouchMove, { passive: false });
-                    stepItem.addEventListener('touchend', handleTouchEnd);
+                    stepItem.addEventListener('touchend', handleTouchEnd, { passive: true });
                 }
                 
                 let toolsLine = step.toolsString ? `<div style="margin: 4px 0; padding: 4px 8px; background: rgba(235, 187, 215, 0.3); border-radius: 6px; font-size: 0.8rem;">🔧 ${step.toolsString.substring(0, 40)}${step.toolsString.length > 40 ? '...' : ''}</div>` : '';
