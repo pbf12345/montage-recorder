@@ -665,11 +665,33 @@
             cursor: grab;
             user-select: none;
             transition: all 0.3s ease;
+            /* Größerer Touch-Bereich */
+            padding: 5px 10px;
+            margin: -5px -10px;
+            display: inline-block;
+            position: relative;
         }
 
         .drag-handle:hover {
             color: var(--hoermann-orange);
             transform: scale(1.1);
+        }
+
+        /* Mobile: Optimierter Touch-Bereich */
+        @media (max-width: 768px) {
+            .drag-handle {
+                font-size: 1.2rem;
+                padding: 12px 15px; /* Größerer Touch-Bereich für Finger */
+                margin: -12px -10px;
+                cursor: grab;
+                -webkit-tap-highlight-color: rgba(255, 130, 0, 0.2);
+            }
+            
+            /* Visuelles Feedback beim Berühren */
+            .drag-handle:active {
+                color: var(--hoermann-orange);
+                transform: scale(1.15);
+            }
         }
 
 
@@ -3736,19 +3758,32 @@
         // ===== MOBILE TOUCH EVENTS =====
 
         function handleTouchStart(e) {
-            // Verhindere, dass Buttons im Item geklickt werden
+            // NUR am Drag-Handle erlauben!
+            if (!e.target.classList.contains('drag-handle')) {
+                return;
+            }
+            
+            // Verhindere, dass Buttons geklickt werden
             if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
                 return;
             }
             
-            touchElement = this;
-            touchStartIndex = parseInt(this.dataset.stepIndex);
+            // Visuelles Feedback am Handle
+            e.target.style.color = 'var(--hoermann-orange)';
+            e.target.style.transform = 'scale(1.2)';
+            
+            touchElement = e.target.closest('.work-step-item');
+            
+            if (!touchElement) return;
+            
+            touchStartIndex = parseInt(touchElement.dataset.stepIndex);
             touchStartY = e.touches[0].clientY;
             
-            // Visuelles Feedback
-            this.style.opacity = '0.5';
-            this.style.transform = 'scale(0.98)';
-            
+            // Visuelles Feedback am ganzen Item
+            touchElement.style.opacity = '0.5';
+            touchElement.style.transform = 'scale(0.98)';
+        
+                    
             // Clone erstellen
             touchClone = this.cloneNode(true);
             touchClone.style.position = 'fixed';
