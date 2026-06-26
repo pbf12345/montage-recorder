@@ -3658,20 +3658,27 @@
                 
                 console.log('📷 Kameras gefunden:', videoInputDevices.length);
                 
-                // Rückkamera bevorzugen
-                selectedDeviceId = videoInputDevices[0]?.deviceId;
-                
+                // IMMER Rückkamera bevorzugen (auch beim Neustart)
+                console.log('📷 Suche Rückkamera...');
+
+                // Zuerst nach Rückkamera suchen
+                const backCamera = videoInputDevices.find(device => 
+                    device.label.toLowerCase().includes('back') || 
+                    device.label.toLowerCase().includes('rear') ||
+                    device.label.toLowerCase().includes('environment') ||
+                    device.label.toLowerCase().includes('hauptkamera')
+                );
+
+                if (backCamera) {
+                    selectedDeviceId = backCamera.deviceId;
+                    console.log('✅ Rückkamera gefunden:', backCamera.label);
+                } else {
+                    // Fallback: Letzte Kamera (meistens Rückkamera)
+                    selectedDeviceId = videoInputDevices[videoInputDevices.length - 1]?.deviceId;
+                    console.log('⚠️ Keine Rückkamera gefunden, nutze:', videoInputDevices[videoInputDevices.length - 1]?.label);
+                }
+
                 if (videoInputDevices.length > 1) {
-                    // Suche nach Rückkamera
-                    const backCamera = videoInputDevices.find(device => 
-                        device.label.toLowerCase().includes('back') || 
-                        device.label.toLowerCase().includes('rear') ||
-                        device.label.toLowerCase().includes('environment')
-                    );
-                    
-                    if (backCamera) {
-                        selectedDeviceId = backCamera.deviceId;
-                    }
                     
                     // Kamera-Wechsel-Button anzeigen
                     const switchBtn = document.getElementById('switch-camera-btn');
