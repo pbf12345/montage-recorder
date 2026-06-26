@@ -1521,6 +1521,12 @@
 </style>
 </head>
 <body>
+    
+    <!-- Versteckter Container für Mobile Scanner -->
+    <div id="qr-reader-temp" style="display: none;"></div>
+    
+    <!-- App Container -->
+    <div class="app-container">
     <div class="container">
         <div class="header">
             <h1>🔧 Funkwerk Recorder</h1>
@@ -3478,6 +3484,8 @@
         let availableCameras = [];
         let torchEnabled = false;
 
+        // ===== QR/BARCODE SCANNER (OPTIMIERT FÜR MOBILE) =====
+
         function simulateQRScan() {
             startRealScanner();
         }
@@ -3487,6 +3495,74 @@
             
             console.log('🔍 Starte Scanner...');
             
+            // ===== MOBILE: Native Kamera mit Barcode-Scanner =====
+            if (isMobile) {
+                console.log('📱 Mobile erkannt - nutze native Kamera');
+                
+                // Erstelle temporären Input
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.capture = 'environment';
+                
+                input.onchange = async function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    console.log('📸 Bild ausgewählt:', file.name);
+                    
+                    // Zeige Lade-Indikator
+                    if (typeof showToast === 'function') {
+                        showToast('🔍 Scanne Code...');
+                    }
+                    
+                    // Versuche Code aus Bild zu lesen
+                    try {
+                        const imageUrl = URL.createObjectURL(file);
+                        const html5QrCode = new Html5Qrcode("qr-reader-temp");
+                        
+                        const result = await html5QrCode.scanFile(file, true);
+                        
+                        console.log('✅ Code erkannt:', result);
+                        
+                        // Vibration
+                        if (navigator.vibrate) {
+                            navigator.vibrate([100, 50, 100]);
+                        }
+                        
+                        // In Feld eintragen
+                        const materialNumberInput = document.getElementById('material-number');
+                        if (materialNumberInput) {
+                            materialNumberInput.value = result;
+                            
+                            const quantityInput = document.getElementById('quantity');
+                            if (quantityInput) {
+                                setTimeout(() => quantityInput.focus(), 100);
+                            }
+                        }
+                        
+                        if (typeof showToast === 'function') {
+                            showToast('✅ Code gescannt: ' + result);
+                        }
+                        
+                        URL.revokeObjectURL(imageUrl);
+                        
+                    } catch (error) {
+                        console.error('❌ Scan-Fehler:', error);
+                        alert('⚠️ Kein Code gefunden. Bitte manuell eingeben.');
+                    }
+                };
+                
+                // Trigger Input
+                input.click();
+                
+                return;
+            }
+            
+            
+            // ===== DESKTOP: Html5Qrcode Live-Scanner =====
+            console.log('🖥️ Desktop erkannt - nutze Live-Scanner');
+            
             // Erstelle Modal
             const scannerModal = document.createElement('div');
             scannerModal.className = 'scanner-modal';
@@ -3495,7 +3571,7 @@
             scannerModal.innerHTML = `
                 <div class="scanner-container">
                     <div class="scanner-header">
-                        <h3>📱 QR/Barcode Scanner</h3>
+                        <h3>📱 Scanner</h3>
                         <button class="scanner-close" onclick="stopRealScanner()">✕</button>
                     </div>
                     
@@ -3505,23 +3581,22 @@
                         </p>
                     </div>
                     
-                    <!-- Scanner Area mit animiertem Rahmen -->
+                    <!-- Scanner Area mit statischen Ecken -->
                     <div class="scanner-area">
                         <div id="qr-reader"></div>
                         <div class="scanner-overlay">
-                        <div class="scanner-frame">
-                            <div class="corner corner-tl"></div>
-                            <div class="corner corner-tr"></div>
-                            <div class="corner corner-bl"></div>
-                            <div class="corner corner-br"></div>
-                            <!-- Keine Scan-Linie -->
+                            <div class="scanner-frame">
+                                <div class="corner corner-tl"></div>
+                                <div class="corner corner-tr"></div>
+                                <div class="corner corner-bl"></div>
+                                <div class="corner corner-br"></div>
+                            </div>
                         </div>
                     </div>
-                    </div>
                     
-                    <!-- Steuerungs-Buttons -->
+                    <!-- Buttons -->
                     <div class="scanner-controls">
-                        <button class="scanner-btn" id="switch-camera-btn" onclick="switchCamera()" title="Kamera wechseln">
+                        <button class="scanner-btn" id="switch-camera-btn" onclick="switchCamera()" title="Kamera wechseln" style="display: none;">
                             🔄 Kamera
                         </button>
                         <button class="scanner-btn" id="torch-btn" onclick="toggleTorch()" title="Taschenlampe" style="display: none;">
@@ -3531,7 +3606,10 @@
                             ❌ Abbrechen
                         </button>
                     </div>
-                                        
+                    
+                    <div class="scanner-tip">
+                        💡 Tipp: Gute Beleuchtung verbessert die Erkennung
+                    </div>
                 </div>
             `;
             
