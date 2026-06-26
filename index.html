@@ -1041,6 +1041,253 @@
             justify-content: center;
         }
 
+        /* ===== OPTIMIERTER SCANNER ===== */
+
+        .scanner-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .scanner-modal.active {
+            opacity: 1;
+        }
+
+        .scanner-container {
+            width: 95%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .scanner-header {
+            background: linear-gradient(135deg, var(--hoermann-blue), #004a99);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scanner-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .scanner-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .scanner-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .scanner-info {
+            padding: 15px 20px;
+            background: rgba(0, 61, 122, 0.05);
+            text-align: center;
+        }
+
+        .scanner-formats {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .format-badge {
+            background: var(--hoermann-orange);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .scanner-area {
+            position: relative;
+            background: #000;
+        }
+
+        #qr-reader {
+            position: relative;
+        }
+
+        #qr-reader video {
+            width: 100% !important;
+            border-radius: 0 !important;
+        }
+
+        /* Animierter Scanner-Rahmen */
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scanner-frame {
+            position: relative;
+            width: 280px;
+            height: 280px;
+        }
+
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--hoermann-orange);
+        }
+
+        .corner-tl {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 8px 0 0 0;
+        }
+
+        .corner-tr {
+            top: 0;
+            right: 0;
+            border-left: none;
+            border-bottom: none;
+            border-radius: 0 8px 0 0;
+        }
+
+        .corner-bl {
+            bottom: 0;
+            left: 0;
+            border-right: none;
+            border-top: none;
+            border-radius: 0 0 0 8px;
+        }
+
+        .corner-br {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+            border-radius: 0 0 8px 0;
+        }
+
+        /* Scan-Linie Animation */
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--hoermann-orange), transparent);
+            top: 0;
+            animation: scan 2s linear infinite;
+            box-shadow: 0 0 10px var(--hoermann-orange);
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: calc(100% - 3px); }
+            100% { top: 0; }
+        }
+
+        /* Erfolgs-Animation */
+        .scanner-area.scan-success {
+            animation: flash-success 0.5s ease;
+        }
+
+        @keyframes flash-success {
+            0%, 100% { background: #000; }
+            50% { background: rgba(40, 167, 69, 0.3); }
+        }
+
+        /* Scanner-Buttons */
+        .scanner-controls {
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+
+        .scanner-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--hoermann-blue), #004a99);
+            color: white;
+            box-shadow: 0 3px 10px rgba(0, 61, 122, 0.3);
+        }
+
+        .scanner-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 61, 122, 0.4);
+        }
+
+        .scanner-btn:active {
+            transform: translateY(0);
+        }
+
+        .scanner-btn.active {
+            background: linear-gradient(135deg, var(--hoermann-orange), #ff9500);
+        }
+
+        .scanner-btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+        }
+
+        .scanner-tip {
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            background: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile Optimierung */
+        @media (max-width: 768px) {
+            .scanner-container {
+                width: 100%;
+                max-width: none;
+                height: 100%;
+                border-radius: 0;
+            }
+            
+            .scanner-frame {
+                width: 250px;
+                height: 250px;
+            }
+        }
+
         .format-badge {
             background: var(--hoermann-light-blue);
             color: white;
@@ -3225,14 +3472,22 @@
             }
         }
 
-        // ===== QR/BARCODE SCANNER =====
+        // ===== QR/BARCODE SCANNER (OPTIMIERT) =====
+        
+        let currentCameraId = null;
+        let availableCameras = [];
+        let torchEnabled = false;
+
         function simulateQRScan() {
             startRealScanner();
         }
 
-        function startRealScanner() {
+        async function startRealScanner() {
             if (scannerActive) return;
-
+            
+            console.log('🔍 Starte Scanner...');
+            
+            // Erstelle Modal
             const scannerModal = document.createElement('div');
             scannerModal.className = 'scanner-modal';
             scannerModal.id = 'scanner-modal';
@@ -3241,68 +3496,315 @@
                 <div class="scanner-container">
                     <div class="scanner-header">
                         <h3>📱 QR/Barcode Scanner</h3>
-                        <button class="scanner-close" onclick="stopRealScanner()">×</button>
+                        <button class="scanner-close" onclick="stopRealScanner()">✕</button>
                     </div>
+                    
                     <div class="scanner-info">
-                        <p style="margin: 0; font-weight: 600;">📷 Halten Sie den Code vor die Kamera</p>
-                        <div class="scanner-formats">
-                            <span class="format-badge">QR-Code</span>
-                            <span class="format-badge">EAN-13</span>
-                            <span class="format-badge">Code-128</span>
+                        <p style="margin: 0; font-weight: 600; color: var(--hoermann-blue);">
+                            📷 Code in den Rahmen halten
+                        </p>
+                    </div>
+                    
+                    <!-- Scanner Area mit animiertem Rahmen -->
+                    <div class="scanner-area">
+                        <div id="qr-reader"></div>
+                        <div class="scanner-overlay">
+                        <div class="scanner-frame">
+                            <div class="corner corner-tl"></div>
+                            <div class="corner corner-tr"></div>
+                            <div class="corner corner-bl"></div>
+                            <div class="corner corner-br"></div>
+                            <!-- Keine Scan-Linie -->
                         </div>
                     </div>
-                    <div id="qr-reader"></div>
+                    </div>
+                    
+                    <!-- Steuerungs-Buttons -->
+                    <div class="scanner-controls">
+                        <button class="scanner-btn" id="switch-camera-btn" onclick="switchCamera()" title="Kamera wechseln">
+                            🔄 Kamera
+                        </button>
+                        <button class="scanner-btn" id="torch-btn" onclick="toggleTorch()" title="Taschenlampe" style="display: none;">
+                            🔦 Licht
+                        </button>
+                        <button class="scanner-btn scanner-btn-secondary" onclick="stopRealScanner()">
+                            ❌ Abbrechen
+                        </button>
+                    </div>
+                                        
                 </div>
             `;
             
             document.body.appendChild(scannerModal);
-            initializeScanner();
+            
+            // Fade-in Animation
+            setTimeout(() => scannerModal.classList.add('active'), 10);
+            
+            // Scanner initialisieren
+            await initializeScanner();
         }
 
-        function initializeScanner() {
+        async function initializeScanner() {
             try {
+                console.log('🔧 Initialisiere Scanner...');
+                
+                if (scannerActive) {
+                    console.log('⚠️ Scanner bereits aktiv');
+                    return;
+                }
+                
                 scannerActive = true;
                 
                 html5QrcodeScanner = new Html5Qrcode("qr-reader");
                 
-                html5QrcodeScanner.start(
+                // Scanner direkt starten (NUR EINE Berechtigungsabfrage)
+                await html5QrcodeScanner.start(
                     { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 300, height: 300 } },
+                    {
+                        fps: 15,
+                        qrbox: { width: 280, height: 280 },
+                        aspectRatio: 1.0
+                        // formatsToSupport WEGLASSEN - Library unterstützt automatisch alle!
+                    },
                     onScanSuccess,
-                    () => {}
-                ).catch(err => {
-                    console.error('Scanner-Fehler:', err);
-                    scannerActive = false;
-                });
+                    onScanError
+                );
+                
+                console.log('✅ Scanner gestartet');
+                
+                // Kameras im Hintergrund nachladen (für Wechsel-Funktion)
+                setTimeout(async () => {
+                    try {
+                        availableCameras = await Html5Qrcode.getCameras();
+                        console.log('📷 Kameras gefunden:', availableCameras.length);
+                        
+                        if (availableCameras.length > 1) {
+                            const switchBtn = document.getElementById('switch-camera-btn');
+                            if (switchBtn) {
+                                switchBtn.style.display = 'inline-flex';
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Kamera-Liste nicht verfügbar');
+                    }
+                }, 2000);
+                
+                // Torch-Check nach 1 Sekunde
+                setTimeout(() => {
+                    checkTorchSupport();
+                }, 1000);
                 
             } catch (error) {
-                console.error('Scanner-Init-Fehler:', error);
+                console.error('❌ Scanner-Fehler:', error);
                 scannerActive = false;
+                
+                let errorMessage = 'Scanner konnte nicht gestartet werden.';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMessage = '⚠️ Kamera-Zugriff wurde verweigert. Bitte erlauben Sie den Zugriff in den Browser-Einstellungen.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage = '⚠️ Keine Kamera gefunden.';
+                } else if (error.message) {
+                    errorMessage = '⚠️ Fehler: ' + error.message;
+                }
+                
+                alert(errorMessage);
+                stopRealScanner();
             }
         }
 
-        function onScanSuccess(decodedText) {
-            stopRealScanner();
-            document.getElementById('material-number').value = decodedText;
-            document.getElementById('quantity').focus();
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('✅ Scan erfolgreich:', decodedText);
+            console.log('Format:', decodedResult.result.format?.formatName);
             
+            // Visuelles Feedback (grüner Flash)
+            const scannerArea = document.querySelector('.scanner-area');
+            if (scannerArea) {
+                scannerArea.classList.add('scan-success');
+            }
+            
+            // Haptisches Feedback (Vibration auf Mobile)
             if (navigator.vibrate) {
-                navigator.vibrate(200);
+                navigator.vibrate([100, 50, 100]);
+            }
+            
+            // Scanner nach kurzer Verzögerung schließen
+            setTimeout(() => {
+                stopRealScanner();
+                
+                // Artikelnummer in Feld eintragen
+                const materialNumberInput = document.getElementById('material-number');
+                if (materialNumberInput) {
+                    materialNumberInput.value = decodedText;
+                    
+                    // Fokus auf Menge setzen
+                    const quantityInput = document.getElementById('quantity');
+                    if (quantityInput) {
+                        setTimeout(() => quantityInput.focus(), 100);
+                    }
+                }
+                
+                // Toast-Nachricht
+                if (typeof showToast === 'function') {
+                    showToast('✅ Code gescannt: ' + decodedText);
+                }
+                
+            }, 500);
+        }
+
+        function onScanError(errorMessage) {
+            // Ignoriere "No QR code found" - das ist normal während des Scannens
+            // Nur echte Fehler loggen
+            if (!errorMessage.includes('No') && !errorMessage.includes('NotFoundException')) {
+                console.warn('Scanner-Fehler:', errorMessage);
             }
         }
 
+        async function switchCamera() {
+            if (availableCameras.length <= 1) {
+                console.log('⚠️ Keine weiteren Kameras verfügbar');
+                return;
+            }
+            
+            console.log('🔄 Wechsle Kamera...');
+            
+            // Finde nächste Kamera
+            const currentIndex = availableCameras.findIndex(cam => cam.id === currentCameraId);
+            const nextIndex = (currentIndex + 1) % availableCameras.length;
+            const nextCamera = availableCameras[nextIndex];
+            
+            console.log('Wechsle zu:', nextCamera.label);
+            
+            try {
+                // Scanner stoppen und neu starten mit neuer Kamera
+                if (html5QrcodeScanner) {
+                    await html5QrcodeScanner.stop();
+                    
+                    currentCameraId = nextCamera.id;
+                    
+                    await html5QrcodeScanner.start(
+                        nextCamera.id,
+                        {
+                            fps: 15,
+                            qrbox: { width: 280, height: 280 },
+                            aspectRatio: 1.0
+                        },
+                        onScanSuccess,
+                        onScanError
+                    );
+                    
+                    console.log('✅ Kamera gewechselt');
+                    
+                    // Toast
+                    if (typeof showToast === 'function') {
+                        showToast('📷 Kamera gewechselt');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Kamera-Wechsel fehlgeschlagen:', error);
+                alert('Kamera konnte nicht gewechselt werden');
+            }
+        }
+
+        async function toggleTorch() {
+            if (!html5QrcodeScanner) return;
+            
+            try {
+                // Nutze EXISTIERENDEN Stream vom Scanner
+                const videoElement = document.querySelector('#qr-reader video');
+                
+                if (!videoElement || !videoElement.srcObject) {
+                    console.warn('Kein aktiver Video-Stream');
+                    return;
+                }
+                
+                const stream = videoElement.srcObject;
+                const track = stream.getVideoTracks()[0];
+                
+                if (!track) {
+                    console.warn('Kein Video-Track gefunden');
+                    return;
+                }
+                
+                const capabilities = track.getCapabilities();
+                
+                if (capabilities.torch) {
+                    torchEnabled = !torchEnabled;
+                    
+                    await track.applyConstraints({
+                        advanced: [{ torch: torchEnabled }]
+                    });
+                    
+                    const torchBtn = document.getElementById('torch-btn');
+                    if (torchBtn) {
+                        torchBtn.textContent = torchEnabled ? '🔦 Aus' : '🔦 Licht';
+                        torchBtn.classList.toggle('active', torchEnabled);
+                    }
+                    
+                    console.log('🔦 Taschenlampe:', torchEnabled ? 'AN' : 'AUS');
+                } else {
+                    console.log('⚠️ Taschenlampe nicht unterstützt');
+                    alert('Ihre Kamera unterstützt keine Taschenlampe');
+                }
+                
+            } catch (error) {
+                console.error('Torch-Fehler:', error);
+                alert('Taschenlampe konnte nicht geschaltet werden');
+            }
+        }
+        async function checkTorchSupport() {
+            try {
+                // Prüfe nur WENN Scanner bereits läuft und Stream existiert
+                if (!html5QrcodeScanner) return;
+                
+                // Nutze existierenden Stream statt neuen anzufordern
+                const videoElement = document.querySelector('#qr-reader video');
+                
+                if (videoElement && videoElement.srcObject) {
+                    const stream = videoElement.srcObject;
+                    const track = stream.getVideoTracks()[0];
+                    
+                    if (track) {
+                        const capabilities = track.getCapabilities();
+                        
+                        if (capabilities.torch) {
+                            const torchBtn = document.getElementById('torch-btn');
+                            if (torchBtn) {
+                                torchBtn.style.display = 'inline-flex';
+                            }
+                            console.log('✅ Taschenlampe unterstützt');
+                        }
+                    }
+                }
+                
+            } catch (err) {
+                console.log('Torch-Check übersprungen');
+            }
+        }
+
+        
         function stopRealScanner() {
+            console.log('🛑 Stoppe Scanner...');
+            
             if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => {
-                    html5QrcodeScanner = null;
-                    scannerActive = false;
-                }).catch(() => {
-                    scannerActive = false;
-                });
+                html5QrcodeScanner.stop()
+                    .then(() => {
+                        console.log('✅ Scanner gestoppt');
+                        html5QrcodeScanner = null;
+                        scannerActive = false;
+                        torchEnabled = false;
+                    })
+                    .catch(err => {
+                        console.error('Fehler beim Stoppen:', err);
+                        scannerActive = false;
+                    });
             }
             
             const modal = document.getElementById('scanner-modal');
-            if (modal) modal.remove();
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => modal.remove(), 300);
+            }
         }
 
         // ===== ZUSÄTZLICHE WERKZEUGE =====
