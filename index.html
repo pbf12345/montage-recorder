@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funkwerk Montageanleitungs-Recorder V3</title>
     <!-- QR/Barcode Scanner Library -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- ZXing Browser - Besser für iOS -->
+    <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1288,6 +1289,22 @@
             }
         }
 
+        /* Scanner Status */w
+        .scanner-status {
+            padding: 12px 20px;
+            text-align: center;
+            font-weight: 600;
+            background: rgba(0, 61, 122, 0.05);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        #scanner-video {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #000;
+        }
+
         .format-badge {
             background: var(--hoermann-light-blue);
             color: white;
@@ -1921,7 +1938,7 @@
 
         // Scanner
         let html5QrcodeScanner = null;
-        let scannerActive = false;
+        
 
         // IndexedDB Variablen
         let db = null;
@@ -3478,13 +3495,11 @@
             }
         }
 
-        // ===== QR/BARCODE SCANNER (OPTIMIERT) =====
-        
-        let currentCameraId = null;
-        let availableCameras = [];
-        let torchEnabled = false;
+        // ===== QR/BARCODE SCANNER (ZXING - iOS OPTIMIERT) =====
 
-        // ===== QR/BARCODE SCANNER (OPTIMIERT FÜR MOBILE) =====
+        let scannerActive = false;
+        let codeReader = null;
+        let selectedDeviceId = null;
 
         function simulateQRScan() {
             startRealScanner();
@@ -3494,74 +3509,7 @@
             if (scannerActive) return;
             
             console.log('🔍 Starte Scanner...');
-            
-            // ===== MOBILE: Native Kamera mit Barcode-Scanner =====
-            if (isMobile) {
-                console.log('📱 Mobile erkannt - nutze native Kamera');
-                
-                // Erstelle temporären Input
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.capture = 'environment';
-                
-                input.onchange = async function(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    
-                    console.log('📸 Bild ausgewählt:', file.name);
-                    
-                    // Zeige Lade-Indikator
-                    if (typeof showToast === 'function') {
-                        showToast('🔍 Scanne Code...');
-                    }
-                    
-                    // Versuche Code aus Bild zu lesen
-                    try {
-                        const imageUrl = URL.createObjectURL(file);
-                        const html5QrCode = new Html5Qrcode("qr-reader-temp");
-                        
-                        const result = await html5QrCode.scanFile(file, true);
-                        
-                        console.log('✅ Code erkannt:', result);
-                        
-                        // Vibration
-                        if (navigator.vibrate) {
-                            navigator.vibrate([100, 50, 100]);
-                        }
-                        
-                        // In Feld eintragen
-                        const materialNumberInput = document.getElementById('material-number');
-                        if (materialNumberInput) {
-                            materialNumberInput.value = result;
-                            
-                            const quantityInput = document.getElementById('quantity');
-                            if (quantityInput) {
-                                setTimeout(() => quantityInput.focus(), 100);
-                            }
-                        }
-                        
-                        if (typeof showToast === 'function') {
-                            showToast('✅ Code gescannt: ' + result);
-                        }
-                        
-                        URL.revokeObjectURL(imageUrl);
-                        
-                    } catch (error) {
-                        console.error('❌ Scan-Fehler:', error);
-                        alert('⚠️ Kein Code gefunden. Bitte manuell eingeben.');
-                    }
-                };
-                
-                // Trigger Input
-                input.click();
-                
-                return;
-            }
-            
-            
-            // ===== DESKTOP: Html5Qrcode Live-Scanner =====
-            console.log('🖥️ Desktop erkannt - nutze Live-Scanner');
+            scannerActive = true;
             
             // Erstelle Modal
             const scannerModal = document.createElement('div');
@@ -3577,13 +3525,13 @@
                     
                     <div class="scanner-info">
                         <p style="margin: 0; font-weight: 600; color: var(--hoermann-blue);">
-                            📷 Code in den Rahmen halten
+                            📷 Code vor die Kamera halten
                         </p>
                     </div>
                     
-                    <!-- Scanner Area mit statischen Ecken -->
+                    <!-- Scanner Video -->
                     <div class="scanner-area">
-                        <div id="qr-reader"></div>
+                        <video id="scanner-video" style="width: 100%; border-radius: 15px;"></video>
                         <div class="scanner-overlay">
                             <div class="scanner-frame">
                                 <div class="corner corner-tl"></div>
@@ -3594,13 +3542,15 @@
                         </div>
                     </div>
                     
+                    <!-- Status -->
+                    <div class="scanner-status" id="scanner-status">
+                        <span style="color: var(--hoermann-orange);">⏳ Suche nach Code...</span>
+                    </div>
+                    
                     <!-- Buttons -->
                     <div class="scanner-controls">
-                        <button class="scanner-btn" id="switch-camera-btn" onclick="switchCamera()" title="Kamera wechseln" style="display: none;">
+                        <button class="scanner-btn" id="switch-camera-btn" onclick="switchScannerCamera()" style="display: none;">
                             🔄 Kamera
-                        </button>
-                        <button class="scanner-btn" id="torch-btn" onclick="toggleTorch()" title="Taschenlampe" style="display: none;">
-                            🔦 Licht
                         </button>
                         <button class="scanner-btn scanner-btn-secondary" onclick="stopRealScanner()">
                             ❌ Abbrechen
@@ -3608,7 +3558,7 @@
                     </div>
                     
                     <div class="scanner-tip">
-                        💡 Tipp: Gute Beleuchtung verbessert die Erkennung
+                        💡 Tipp: Code mittig im Rahmen positionieren
                     </div>
                 </div>
             `;
@@ -3619,89 +3569,109 @@
             setTimeout(() => scannerModal.classList.add('active'), 10);
             
             // Scanner initialisieren
-            await initializeScanner();
+            await initializeZXingScanner();
         }
 
-        async function initializeScanner() {
+        async function initializeZXingScanner() {
             try {
-                console.log('🔧 Initialisiere Scanner...');
+                console.log('🔧 Initialisiere ZXing Scanner...');
                 
-                if (scannerActive) {
-                    console.log('⚠️ Scanner bereits aktiv');
-                    return;
+                // ZXing CodeReader erstellen
+                codeReader = new ZXing.BrowserMultiFormatReader();
+                
+                console.log('📷 Lade Kameras...');
+                
+                // Verfügbare Kameras abrufen
+                const videoInputDevices = await codeReader.listVideoInputDevices();
+                
+                console.log('📷 Kameras gefunden:', videoInputDevices.length);
+                
+                // Rückkamera bevorzugen
+                selectedDeviceId = videoInputDevices[0]?.deviceId;
+                
+                if (videoInputDevices.length > 1) {
+                    // Suche nach Rückkamera
+                    const backCamera = videoInputDevices.find(device => 
+                        device.label.toLowerCase().includes('back') || 
+                        device.label.toLowerCase().includes('rear') ||
+                        device.label.toLowerCase().includes('environment')
+                    );
+                    
+                    if (backCamera) {
+                        selectedDeviceId = backCamera.deviceId;
+                    }
+                    
+                    // Kamera-Wechsel-Button anzeigen
+                    const switchBtn = document.getElementById('switch-camera-btn');
+                    if (switchBtn) {
+                        switchBtn.style.display = 'inline-flex';
+                    }
                 }
                 
-                scannerActive = true;
+                console.log('✅ Starte Scanner mit Kamera:', selectedDeviceId);
                 
-                html5QrcodeScanner = new Html5Qrcode("qr-reader");
-                
-                // Scanner direkt starten (NUR EINE Berechtigungsabfrage)
-                await html5QrcodeScanner.start(
-                    { facingMode: "environment" },
-                    {
-                        fps: 15,
-                        qrbox: { width: 280, height: 280 },
-                        aspectRatio: 1.0
-                        // formatsToSupport WEGLASSEN - Library unterstützt automatisch alle!
-                    },
-                    onScanSuccess,
-                    onScanError
+                // Scanner starten
+                await codeReader.decodeFromVideoDevice(
+                    selectedDeviceId,
+                    'scanner-video',
+                    (result, err) => {
+                        if (result) {
+                            onZXingScanSuccess(result.text);
+                        }
+                        
+                        // Fehler ignorieren (sucht permanent)
+                        if (err && !(err instanceof ZXing.NotFoundException)) {
+                            console.warn('Scanner-Fehler:', err);
+                        }
+                    }
                 );
                 
-                console.log('✅ Scanner gestartet');
+                console.log('✅ Scanner läuft');
                 
-                // Kameras im Hintergrund nachladen (für Wechsel-Funktion)
-                setTimeout(async () => {
-                    try {
-                        availableCameras = await Html5Qrcode.getCameras();
-                        console.log('📷 Kameras gefunden:', availableCameras.length);
-                        
-                        if (availableCameras.length > 1) {
-                            const switchBtn = document.getElementById('switch-camera-btn');
-                            if (switchBtn) {
-                                switchBtn.style.display = 'inline-flex';
-                            }
-                        }
-                    } catch (e) {
-                        console.log('Kamera-Liste nicht verfügbar');
-                    }
-                }, 2000);
-                
-                // Torch-Check nach 1 Sekunde
-                setTimeout(() => {
-                    checkTorchSupport();
-                }, 1000);
+                // Status aktualisieren
+                const statusDiv = document.getElementById('scanner-status');
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color: var(--success-green);">✅ Scanner aktiv</span>';
+                }
                 
             } catch (error) {
                 console.error('❌ Scanner-Fehler:', error);
-                scannerActive = false;
+                
+                const statusDiv = document.getElementById('scanner-status');
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color: var(--danger-red);">❌ Kamera nicht verfügbar</span>';
+                }
                 
                 let errorMessage = 'Scanner konnte nicht gestartet werden.';
                 
                 if (error.name === 'NotAllowedError') {
-                    errorMessage = '⚠️ Kamera-Zugriff wurde verweigert. Bitte erlauben Sie den Zugriff in den Browser-Einstellungen.';
+                    errorMessage = '⚠️ Kamera-Zugriff wurde verweigert. Bitte erlauben Sie den Zugriff.';
                 } else if (error.name === 'NotFoundError') {
                     errorMessage = '⚠️ Keine Kamera gefunden.';
-                } else if (error.message) {
-                    errorMessage = '⚠️ Fehler: ' + error.message;
                 }
                 
                 alert(errorMessage);
+                scannerActive = false;
                 stopRealScanner();
             }
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
-            console.log('✅ Scan erfolgreich:', decodedText);
-            console.log('Format:', decodedResult.result.format?.formatName);
+        function onZXingScanSuccess(decodedText) {
+            console.log('✅ Code gescannt:', decodedText);
             
-            // Visuelles Feedback (grüner Flash)
+            // Visuelles Feedback
             const scannerArea = document.querySelector('.scanner-area');
             if (scannerArea) {
                 scannerArea.classList.add('scan-success');
             }
             
-            // Haptisches Feedback (Vibration auf Mobile)
+            // Status aktualisieren
+            const statusDiv = document.getElementById('scanner-status');
+            if (statusDiv) {
+                statusDiv.innerHTML = '<span style="color: var(--success-green);">✅ Code erkannt!</span>';
+            }
+            
+            // Vibration
             if (navigator.vibrate) {
                 navigator.vibrate([100, 50, 100]);
             }
@@ -3730,159 +3700,63 @@
             }, 500);
         }
 
-        function onScanError(errorMessage) {
-            // Ignoriere "No QR code found" - das ist normal während des Scannens
-            // Nur echte Fehler loggen
-            if (!errorMessage.includes('No') && !errorMessage.includes('NotFoundException')) {
-                console.warn('Scanner-Fehler:', errorMessage);
-            }
-        }
-
-        async function switchCamera() {
-            if (availableCameras.length <= 1) {
-                console.log('⚠️ Keine weiteren Kameras verfügbar');
-                return;
-            }
-            
-            console.log('🔄 Wechsle Kamera...');
-            
-            // Finde nächste Kamera
-            const currentIndex = availableCameras.findIndex(cam => cam.id === currentCameraId);
-            const nextIndex = (currentIndex + 1) % availableCameras.length;
-            const nextCamera = availableCameras[nextIndex];
-            
-            console.log('Wechsle zu:', nextCamera.label);
-            
+        async function switchScannerCamera() {
             try {
-                // Scanner stoppen und neu starten mit neuer Kamera
-                if (html5QrcodeScanner) {
-                    await html5QrcodeScanner.stop();
-                    
-                    currentCameraId = nextCamera.id;
-                    
-                    await html5QrcodeScanner.start(
-                        nextCamera.id,
-                        {
-                            fps: 15,
-                            qrbox: { width: 280, height: 280 },
-                            aspectRatio: 1.0
-                        },
-                        onScanSuccess,
-                        onScanError
-                    );
-                    
-                    console.log('✅ Kamera gewechselt');
-                    
-                    // Toast
-                    if (typeof showToast === 'function') {
-                        showToast('📷 Kamera gewechselt');
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Kamera-Wechsel fehlgeschlagen:', error);
-                alert('Kamera konnte nicht gewechselt werden');
-            }
-        }
-
-        async function toggleTorch() {
-            if (!html5QrcodeScanner) return;
-            
-            try {
-                // Nutze EXISTIERENDEN Stream vom Scanner
-                const videoElement = document.querySelector('#qr-reader video');
+                console.log('🔄 Wechsle Kamera...');
                 
-                if (!videoElement || !videoElement.srcObject) {
-                    console.warn('Kein aktiver Video-Stream');
-                    return;
-                }
+                const videoInputDevices = await codeReader.listVideoInputDevices();
                 
-                const stream = videoElement.srcObject;
-                const track = stream.getVideoTracks()[0];
+                if (videoInputDevices.length <= 1) return;
                 
-                if (!track) {
-                    console.warn('Kein Video-Track gefunden');
-                    return;
-                }
+                // Finde nächste Kamera
+                const currentIndex = videoInputDevices.findIndex(device => device.deviceId === selectedDeviceId);
+                const nextIndex = (currentIndex + 1) % videoInputDevices.length;
+                const nextDevice = videoInputDevices[nextIndex];
                 
-                const capabilities = track.getCapabilities();
+                console.log('Wechsle zu:', nextDevice.label);
                 
-                if (capabilities.torch) {
-                    torchEnabled = !torchEnabled;
-                    
-                    await track.applyConstraints({
-                        advanced: [{ torch: torchEnabled }]
-                    });
-                    
-                    const torchBtn = document.getElementById('torch-btn');
-                    if (torchBtn) {
-                        torchBtn.textContent = torchEnabled ? '🔦 Aus' : '🔦 Licht';
-                        torchBtn.classList.toggle('active', torchEnabled);
-                    }
-                    
-                    console.log('🔦 Taschenlampe:', torchEnabled ? 'AN' : 'AUS');
-                } else {
-                    console.log('⚠️ Taschenlampe nicht unterstützt');
-                    alert('Ihre Kamera unterstützt keine Taschenlampe');
-                }
+                // Scanner neu starten mit neuer Kamera
+                codeReader.reset();
+                selectedDeviceId = nextDevice.deviceId;
                 
-            } catch (error) {
-                console.error('Torch-Fehler:', error);
-                alert('Taschenlampe konnte nicht geschaltet werden');
-            }
-        }
-        async function checkTorchSupport() {
-            try {
-                // Prüfe nur WENN Scanner bereits läuft und Stream existiert
-                if (!html5QrcodeScanner) return;
-                
-                // Nutze existierenden Stream statt neuen anzufordern
-                const videoElement = document.querySelector('#qr-reader video');
-                
-                if (videoElement && videoElement.srcObject) {
-                    const stream = videoElement.srcObject;
-                    const track = stream.getVideoTracks()[0];
-                    
-                    if (track) {
-                        const capabilities = track.getCapabilities();
-                        
-                        if (capabilities.torch) {
-                            const torchBtn = document.getElementById('torch-btn');
-                            if (torchBtn) {
-                                torchBtn.style.display = 'inline-flex';
-                            }
-                            console.log('✅ Taschenlampe unterstützt');
+                await codeReader.decodeFromVideoDevice(
+                    selectedDeviceId,
+                    'scanner-video',
+                    (result, err) => {
+                        if (result) {
+                            onZXingScanSuccess(result.text);
                         }
                     }
+                );
+                
+                console.log('✅ Kamera gewechselt');
+                
+                if (typeof showToast === 'function') {
+                    showToast('📷 Kamera gewechselt');
                 }
                 
-            } catch (err) {
-                console.log('Torch-Check übersprungen');
+            } catch (error) {
+                console.error('❌ Kamera-Wechsel fehlgeschlagen:', error);
             }
         }
 
-        
         function stopRealScanner() {
             console.log('🛑 Stoppe Scanner...');
             
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop()
-                    .then(() => {
-                        console.log('✅ Scanner gestoppt');
-                        html5QrcodeScanner = null;
-                        scannerActive = false;
-                        torchEnabled = false;
-                    })
-                    .catch(err => {
-                        console.error('Fehler beim Stoppen:', err);
-                        scannerActive = false;
-                    });
+            if (codeReader) {
+                codeReader.reset();
+                codeReader = null;
             }
+            
+            scannerActive = false;
             
             const modal = document.getElementById('scanner-modal');
             if (modal) {
                 modal.classList.remove('active');
                 setTimeout(() => modal.remove(), 300);
             }
+            
+            console.log('✅ Scanner gestoppt');
         }
 
         // ===== ZUSÄTZLICHE WERKZEUGE =====
