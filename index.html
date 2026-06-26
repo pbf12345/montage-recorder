@@ -2511,73 +2511,177 @@
 
         // ===== KAMERA-MANAGEMENT (iOS & Desktop optimiert) =====
 
-        function startCamera() {
-            // console.log('=== startCamera() START ===');
-            console.log('typeof isMobile:', typeof isMobile);
-            // console.log('isMobile Wert:', isMobile);
+        // ===== KAMERA-FUNKTIONEN =====
+
+        async function startCamera() {
+            console.log('=== startCamera START ===');
             
             try {
-                // Prüfen ob Variable existiert
-                if (typeof isMobile === 'undefined') {
-                    alert('❌ FEHLER: isMobile nicht definiert!');
-                    console.error('isMobile ist undefined');
-                    return;
-                }
-                
                 // Mobile: Native Kamera
                 if (isMobile) {
                     console.log('📱 Mobile erkannt - erstelle Input');
                     
-                    // NEUEN Input erstellen
                     const input = document.createElement('input');
                     input.type = 'file';
                     input.accept = 'image/*';
                     input.capture = 'environment';
                     input.multiple = true;
                     
-                    console.log('Input erstellt:', input);
-                    
-                    // Change Event
                     input.onchange = function(e) {
                         console.log('📸 onChange - Dateien:', e.target.files.length);
                         
                         if (e.target.files && e.target.files.length > 0) {
-                            // Prüfen ob processFiles existiert
                             if (typeof processFiles === 'function') {
                                 processFiles(e.target.files);
-                            } else {
-                                alert('❌ processFiles Funktion nicht gefunden!');
-                                console.error('processFiles existiert nicht');
                             }
                         }
                     };
                     
-                    // Direkt klicken (ohne appendChild für iOS)
-                    console.log('Klicke Input...');
                     input.click();
-                    
-                    console.log('=== startCamera() ENDE (Mobile) ===');
                     return;
                 }
                 
-                // Desktop: WebRTC
-                console.log('🖥️ Desktop erkannt');
-                alert('Desktop-Kamera noch nicht implementiert - bitte Upload nutzen');
+                // Desktop: WebRTC Kamera
+                console.log('🖥️ Desktop erkannt - starte WebRTC');
+                
+                const videoElement = document.getElementById('camera-video');
+                const captureButton = document.getElementById('capture-button');
+                const statusText = document.getElementById('camera-status-text');
+                const statusDot = document.getElementById('status-dot');
+                
+                if (!videoElement) {
+                    console.error('❌ camera-video nicht gefunden');
+                    alert('Kamera-Element nicht gefunden');
+                    return;
+                }
+                
+                // Status aktualisieren
+                if (statusText) statusText.textContent = 'Kamera wird gestartet...';
+                if (statusDot) statusDot.className = 'status-dot status-loading';
+                
+                // Zugriff auf Kamera
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                });
+                
+                // Stream speichern
+                window.currentCameraStream = stream;
+                
+                // Video starten
+                videoElement.srcObject = stream;
+                videoElement.style.display = 'block';
+                videoElement.play();
+                
+                // Button aktivieren
+                if (captureButton) {
+                    captureButton.disabled = false;
+                }
+                
+                // Status aktualisieren
+                if (statusText) statusText.textContent = 'Kamera aktiv';
+                if (statusDot) statusDot.className = 'status-dot status-active';
+                
+                cameraInitialized = true;
+                console.log('✅ Desktop-Kamera gestartet');
                 
             } catch (error) {
-                console.error('❌ FEHLER in startCamera():', error);
-                alert('❌ Fehler: ' + error.message);
+                console.error('❌ Kamera-Fehler:', error);
+                
+                const statusText = document.getElementById('camera-status-text');
+                const statusDot = document.getElementById('status-dot');
+                
+                if (statusText) statusText.textContent = 'Kamera-Fehler';
+                if (statusDot) statusDot.className = 'status-dot status-error';
+                
+                if (error.name === 'NotAllowedError') {
+                    alert('⚠️ Kamera-Zugriff wurde verweigert. Bitte erlauben Sie den Zugriff.');
+                } else if (error.name === 'NotFoundError') {
+                    alert('⚠️ Keine Kamera gefunden. Bitte verwenden Sie den Upload.');
+                } else {
+                    alert('⚠️ Kamera-Fehler: ' + error.message);
+                }
             }
         }
 
-        // Kamera stoppen (Desktop)
+        async function capturePhoto() {
+            console.log('📸 capturePhoto() aufgerufen');
+            
+            const videoElement = document.getElementById('camera-video');
+            const canvas = document.getElementById('photo-canvas');
+            
+            if (!videoElement || !canvas) {
+                console.error('❌ Video oder Canvas nicht gefunden');
+                alert('Kamera-Elemente nicht gefunden');
+                return;
+            }
+            
+            if (!videoElement.srcObject) {
+                console.error('❌ Kamera nicht aktiv');
+                alert('Bitte starten Sie zuerst die Kamera');
+                return;
+            }
+            
+            const context = canvas.getContext('2d');
+            
+            // Canvas-Größe an Video anpassen
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            
+            // Frame vom Video auf Canvas zeichnen
+            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            
+            console.log('📸 Frame auf Canvas gezeichnet:', canvas.width, 'x', canvas.height);
+            
+            // Canvas zu Blob konvertieren
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    console.error('❌ Blob-Konvertierung fehlgeschlagen');
+                    alert('Foto konnte nicht erstellt werden');
+                    return;
+                }
+                
+                // Blob als File behandeln
+                const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                
+                console.log('✅ Foto aufgenommen:', file.name, file.size, 'bytes');
+                
+                // Visuelles Feedback (kurzes Aufblitzen)
+                const videoWrapper = videoElement.parentElement;
+                if (videoWrapper) {
+                    videoWrapper.style.transition = 'opacity 0.1s';
+                    videoWrapper.style.opacity = '0.3';
+                    setTimeout(() => {
+                        videoWrapper.style.opacity = '1';
+                    }, 100);
+                }
+                
+                // processFiles aufrufen
+                if (typeof processFiles === 'function') {
+                    await processFiles([file]);
+                } else {
+                    console.error('❌ processFiles nicht gefunden');
+                    alert('Fehler: Foto konnte nicht verarbeitet werden');
+                }
+                
+            }, 'image/jpeg', 0.95);
+        }
+
         function stopCamera() {
+            console.log('🛑 Stoppe Kamera');
+            
             if (window.currentCameraStream) {
-                window.currentCameraStream.getTracks().forEach(track => track.stop());
+                window.currentCameraStream.getTracks().forEach(track => {
+                    track.stop();
+                    console.log('🛑 Track gestoppt:', track.kind);
+                });
                 window.currentCameraStream = null;
             }
             
-            const videoElement = document.getElementById('camera-video'); // ← GEÄNDERT!
+            const videoElement = document.getElementById('camera-video');
             if (videoElement) {
                 videoElement.srcObject = null;
                 videoElement.style.display = 'none';
@@ -2592,6 +2696,8 @@
             const statusDot = document.getElementById('status-dot');
             if (statusText) statusText.textContent = 'Kamera gestoppt';
             if (statusDot) statusDot.className = 'status-dot status-inactive';
+            
+            cameraInitialized = false;
             
             console.log('✅ Kamera gestoppt');
         }
