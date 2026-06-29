@@ -5046,7 +5046,8 @@
                                     resolution: p.resolution || '',
                                     timestamp: p.timestamp || ''
                                 };
-                            })
+                            }),
+                            isScanStep: step.isScanStep || false
                         };
                     }),
                     statistics: {
@@ -5715,7 +5716,10 @@
                         generator: 'Funkwerk Montageanleitungs-Recorder V3 (IndexedDB)'
                     },
                     projectInfo: projectInfo,
-                    workSteps: workSteps,
+                    workSteps: workSteps.map(step => ({
+                        ...step,
+                        isScanStep: step.isScanStep || false
+                    })),
                     statistics: {
                         totalSteps: workSteps.length,
                         totalPhotos: workSteps.reduce((sum, step) => sum + step.photos.length, 0),
