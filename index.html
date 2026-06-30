@@ -3809,8 +3809,7 @@
                 
                 console.log('✅ Starte Scanner mit Kamera:', selectedDeviceId);
                 
-                // Scanner starten
-                await codeReader.decodeFromVideoDevice(
+                const controls = await codeReader.decodeFromVideoDevice(
                     selectedDeviceId,
                     'scanner-video',
                     (result, err) => {
@@ -3824,6 +3823,33 @@
                         }
                     }
                 );
+
+                // ZOOM ZURÜCKSETZEN
+                try {
+                    const stream = controls.stream;
+                    const videoTrack = stream.getVideoTracks()[0];
+                    const capabilities = videoTrack.getCapabilities();
+                    
+                    console.log('📷 Kamera-Fähigkeiten:', capabilities);
+                    
+                    if (capabilities.zoom) {
+                        await videoTrack.applyConstraints({
+                            advanced: [{ zoom: capabilities.zoom.min || 1.0 }]
+                        });
+                        console.log('✅ Zoom zurückgesetzt auf:', capabilities.zoom.min);
+                    }
+                    
+                    // Optional: Fokus optimieren
+                    if (capabilities.focusMode) {
+                        await videoTrack.applyConstraints({
+                            advanced: [{ focusMode: 'continuous' }]
+                        });
+                        console.log('✅ Autofokus aktiviert');
+                    }
+                    
+                } catch (error) {
+                    console.warn('⚠️ Zoom-Reset fehlgeschlagen:', error);
+                }
                 
                 console.log('✅ Scanner läuft');
                 
@@ -3918,7 +3944,7 @@
                 codeReader.reset();
                 selectedDeviceId = nextDevice.deviceId;
                 
-                await codeReader.decodeFromVideoDevice(
+                const controls = await codeReader.decodeFromVideoDevice(
                     selectedDeviceId,
                     'scanner-video',
                     (result, err) => {
@@ -3927,6 +3953,21 @@
                         }
                     }
                 );
+
+                // ZOOM ZURÜCKSETZEN
+                try {
+                    const stream = controls.stream;
+                    const videoTrack = stream.getVideoTracks()[0];
+                    const capabilities = videoTrack.getCapabilities();
+                    
+                    if (capabilities.zoom) {
+                        await videoTrack.applyConstraints({
+                            advanced: [{ zoom: capabilities.zoom.min || 1.0 }]
+                        });
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Zoom-Reset fehlgeschlagen:', error);
+                }
                 
                 console.log('✅ Kamera gewechselt');
                 
