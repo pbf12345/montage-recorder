@@ -2896,6 +2896,64 @@
 
         // ===== KAMERA-MANAGEMENT (iOS & Desktop optimiert) =====
 
+        // ===== NEUE FUNKTION: BESTE KAMERA AUSWÄHLEN (iOS OPTIMIERT) =====
+        async function selectBestCamera() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                console.log('📷 Verfügbare Kameras:', videoDevices.length);
+                videoDevices.forEach((device, i) => {
+                    console.log(`  ${i + 1}. ${device.label} (ID: ${device.deviceId.slice(0, 20)}...)`);
+                });
+                
+                if (videoDevices.length === 0) {
+                    console.warn('⚠️ Keine Kameras gefunden');
+                    return null;
+                }
+                
+                // **iOS/SAFARI: WEITWINKEL BEVORZUGEN**
+                if (isIOS || /Safari/i.test(navigator.userAgent)) {
+                    console.log('🍎 iOS/Safari erkannt - suche Weitwinkel-Kamera');
+                    
+                    // Prioritäten für iOS (in Reihenfolge):
+                    const priorities = [
+                        /back ultra wide/i,      // 1. Ultra-Weitwinkel
+                        /back wide/i,            // 2. Weitwinkel
+                        /back camera$/i,         // 3. Standard "Back Camera" (= Weitwinkel)
+                        /back|rear|environment|rück|haupt/i  // 4. Beliebige Rückkamera
+                    ];
+                    
+                    for (const pattern of priorities) {
+                        const match = videoDevices.find(device => pattern.test(device.label));
+                        if (match) {
+                            console.log('✅ iOS Kamera gewählt:', match.label);
+                            return match.deviceId;
+                        }
+                    }
+                }
+                
+                // **ANDROID/DESKTOP: BACK CAMERA BEVORZUGEN**
+                const backCamera = videoDevices.find(device => 
+                    /back|rear|environment|rück|haupt/i.test(device.label)
+                );
+                
+                if (backCamera) {
+                    console.log('✅ Rückkamera gefunden:', backCamera.label);
+                    return backCamera.deviceId;
+                }
+                
+                // Fallback: Letzte Kamera (oft Rückkamera)
+                const fallback = videoDevices[videoDevices.length - 1];
+                console.log('⚠️ Fallback: Letzte Kamera:', fallback.label);
+                return fallback.deviceId;
+                
+            } catch (error) {
+                console.error('❌ Fehler bei Kamera-Auswahl:', error);
+                return null;
+            }
+        }
+
         // ===== KAMERA-FUNKTIONEN =====
 
         async function startCamera() {
@@ -2944,14 +3002,27 @@
                 if (statusText) statusText.textContent = 'Kamera wird gestartet...';
                 if (statusDot) statusDot.className = 'status-dot status-loading';
                 
-                // Zugriff auf Kamera
-                const stream = await navigator.mediaDevices.getUserMedia({
+                // **NEUE LOGIK: Beste Kamera auswählen**
+                const deviceId = await selectBestCamera();
+
+                // Zugriff auf Kamera mit optimierten Constraints
+                const constraints = {
                     video: {
-                        facingMode: 'environment',
                         width: { ideal: 1920 },
                         height: { ideal: 1080 }
                     }
-                });
+                };
+
+                // deviceId hinzufügen, falls gefunden
+                if (deviceId) {
+                    constraints.video.deviceId = { exact: deviceId };
+                    console.log('📷 Nutze ausgewählte Kamera:', deviceId.slice(0, 20) + '...');
+                } else {
+                    constraints.video.facingMode = 'environment';
+                    console.log('📷 Nutze facingMode: environment');
+                }
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 
                 // Stream speichern
                 window.currentCameraStream = stream;
@@ -2972,6 +3043,23 @@
                 
                 cameraInitialized = true;
                 console.log('✅ Desktop-Kamera gestartet');
+
+                // **DEBUG: Zeige aktive Kamera**
+                if (stream) {
+                    const track = stream.getVideoTracks()[0];
+                    const settings = track.getSettings();
+                    
+                    console.log('📷 AKTIVE KAMERA:');
+                    console.log('   - Label:', track.label);
+                    console.log('   - DeviceId:', settings.deviceId?.slice(0, 20) + '...');
+                    console.log('   - FacingMode:', settings.facingMode);
+                    console.log('   - Auflösung:', settings.width, 'x', settings.height);
+                    
+                    // Toast-Notification
+                    if (typeof showToast === 'function') {
+                        showToast(`📷 ${track.label}`);
+                    }
+                }
                 
             } catch (error) {
                 console.error('❌ Kamera-Fehler:', error);
@@ -3778,24 +3866,44 @@
                 
                 console.log('📷 Kameras gefunden:', videoInputDevices.length);
                 
-                // IMMER Rückkamera bevorzugen (auch beim Neustart)
-                console.log('📷 Suche Rückkamera...');
+                // **OPTIMIERTE KAMERA-AUSWAHL (iOS WEITWINKEL)**
+                console.log('📷 Wähle beste Scanner-Kamera...');
 
-                // Zuerst nach Rückkamera suchen
-                const backCamera = videoInputDevices.find(device => 
-                    device.label.toLowerCase().includes('back') || 
-                    device.label.toLowerCase().includes('rear') ||
-                    device.label.toLowerCase().includes('environment') ||
-                    device.label.toLowerCase().includes('hauptkamera')
-                );
-
-                if (backCamera) {
-                    selectedDeviceId = backCamera.deviceId;
-                    console.log('✅ Rückkamera gefunden:', backCamera.label);
+                // Nutze die gleiche Logik wie startCamera()
+                if (isIOS || /Safari/i.test(navigator.userAgent)) {
+                    console.log('🍎 iOS/Safari - suche Weitwinkel');
+                    
+                    const priorities = [
+                        /back ultra wide/i,
+                        /back wide/i,
+                        /back camera$/i,
+                        /back|rear|environment|rück|haupt/i
+                    ];
+                    
+                    for (const pattern of priorities) {
+                        const match = videoInputDevices.find(device => pattern.test(device.label));
+                        if (match) {
+                            selectedDeviceId = match.deviceId;
+                            console.log('✅ iOS Scanner-Kamera:', match.label);
+                            break;
+                        }
+                    }
                 } else {
-                    // Fallback: Letzte Kamera (meistens Rückkamera)
+                    // Android/Desktop: Back Camera
+                    const backCamera = videoInputDevices.find(device => 
+                        /back|rear|environment|rück|haupt/i.test(device.label)
+                    );
+                    
+                    if (backCamera) {
+                        selectedDeviceId = backCamera.deviceId;
+                        console.log('✅ Rückkamera gefunden:', backCamera.label);
+                    }
+                }
+
+                // Fallback
+                if (!selectedDeviceId && videoInputDevices.length > 0) {
                     selectedDeviceId = videoInputDevices[videoInputDevices.length - 1]?.deviceId;
-                    console.log('⚠️ Keine Rückkamera gefunden, nutze:', videoInputDevices[videoInputDevices.length - 1]?.label);
+                    console.log('⚠️ Fallback Scanner-Kamera:', videoInputDevices[videoInputDevices.length - 1]?.label);
                 }
 
                 if (videoInputDevices.length > 1) {
