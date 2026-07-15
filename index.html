@@ -4393,7 +4393,6 @@
             document.getElementById('instructions-text').value = '';
             document.getElementById('tool-input').value = '';
             document.getElementById('torque-input').value = '';
-            document.getElementById('scan-step-checkbox').checked = false; // ← NEU!
             if (document.getElementById('important-notes-text')) {
                 document.getElementById('important-notes-text').value = '';
         }
@@ -4505,13 +4504,7 @@
             };
 
             workSteps.push(workStep);
-    
-            // SCANSCHRITT CHECKBOX ZURÜCKSETZEN
-            const scanCheckbox = document.getElementById('scan-step-checkbox');
-            if (scanCheckbox) {
-                scanCheckbox.checked = false;
-            }
-            
+               
             prepareNextWorkStep();
             await saveToIndexedDB();
         }
@@ -4534,14 +4527,15 @@
             document.getElementById('tool-input').value = '';
             document.getElementById('torque-input').value = '';
             document.getElementById('warning-input').value = '';
-            clearAdditionalTools();
-            clearCables();
-
-            // SCANSCHRITT CHECKBOX ZURÜCKSETZEN
+            
+            // ✅ RICHTIG: Checkbox hier zurücksetzen
             const scanCheckbox = document.getElementById('scan-step-checkbox');
             if (scanCheckbox) {
                 scanCheckbox.checked = false;
             }
+            
+            clearAdditionalTools();
+            clearCables();
 
             stopCamera();
             document.getElementById('photo-step').classList.add('hidden');
@@ -4594,12 +4588,6 @@
                 console.log('💾 Speichere Step:', finalStep); // DEBUG
                 
                 workSteps.push(finalStep);
-    
-                    // SCANSCHRITT CHECKBOX ZURÜCKSETZEN
-                    const scanCheckbox = document.getElementById('scan-step-checkbox');
-                    if (scanCheckbox) {
-                        scanCheckbox.checked = false;
-                    }
                 }
             }
 
