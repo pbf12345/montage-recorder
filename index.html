@@ -4389,12 +4389,6 @@
                 startCamera();
             }, 200);
             saveToIndexedDB();
-            // Felder zurücksetzen
-            document.getElementById('instructions-text').value = '';
-            document.getElementById('tool-input').value = '';
-            document.getElementById('torque-input').value = '';
-            if (document.getElementById('important-notes-text')) {
-                document.getElementById('important-notes-text').value = '';
         }
 
         function backFromMaterials() {
@@ -4504,7 +4498,6 @@
             };
 
             workSteps.push(workStep);
-               
             prepareNextWorkStep();
             await saveToIndexedDB();
         }
@@ -4527,13 +4520,6 @@
             document.getElementById('tool-input').value = '';
             document.getElementById('torque-input').value = '';
             document.getElementById('warning-input').value = '';
-            
-            // ✅ RICHTIG: Checkbox hier zurücksetzen
-            const scanCheckbox = document.getElementById('scan-step-checkbox');
-            if (scanCheckbox) {
-                scanCheckbox.checked = false;
-            }
-            
             clearAdditionalTools();
             clearCables();
 
@@ -4588,7 +4574,6 @@
                 console.log('💾 Speichere Step:', finalStep); // DEBUG
                 
                 workSteps.push(finalStep);
-                }
             }
 
             stopCamera();
