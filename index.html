@@ -1677,6 +1677,253 @@
             transform: scale(0.9) !important;
         }
 
+        /* ========================================
+        MOBILE BUTTON OPTIMIERUNG
+        ======================================== */
+
+        /* === ALLGEMEINE BUTTON-VERBESSERUNGEN === */
+        .btn {
+            /* Bessere Touch-Targets */
+            min-height: 48px;
+            min-width: 100px;
+            
+            /* Flexible Größenanpassung */
+            width: auto;
+            padding: 12px 20px;
+            
+            /* Verhindere Textumbruch in Buttons */
+            white-space: nowrap;
+            
+            /* Bessere Lesbarkeit */
+            font-size: 0.95rem;
+            line-height: 1.4;
+            
+            /* Zentrierte Icons */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+            /* Verhindere Text-Selection */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* === MOBILE OPTIMIERUNG (Smartphones) === */
+        @media (max-width: 768px) {
+            
+            /* Alle Standard-Buttons */
+            .btn {
+                font-size: 0.85rem;
+                padding: 14px 18px;
+                margin: 6px 4px;
+                min-height: 48px;
+                border-radius: 10px;
+                
+                /* Flexibler für kleine Bildschirme */
+                width: auto;
+                max-width: 100%;
+                
+                /* Text bei Bedarf umbrechen */
+                white-space: normal;
+                text-align: center;
+            }
+            
+            /* Große Buttons (Call-to-Action) */
+            .btn-large {
+                width: 100% !important;
+                padding: 16px 20px !important;
+                font-size: 1rem !important;
+                min-height: 56px !important;
+                margin: 10px 0 !important;
+                border-radius: 12px;
+            }
+            
+            /* Button-Container: Stacked Layout */
+            .section > div:has(.btn),
+            div[style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            
+            /* Buttons nebeneinander (2-Spalten) wenn Platz */
+            .btn-row {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                width: 100%;
+            }
+            
+            /* Einzelne Button-Reihe */
+            .btn-full {
+                grid-column: 1 / -1;
+                width: 100%;
+            }
+            
+            /* Kamera-Buttons */
+            .capture-btn {
+                width: 70px !important;
+                height: 70px !important;
+                font-size: 1.8rem !important;
+                min-height: unset !important;
+            }
+            
+            /* Material-Buttons */
+            .material-remove,
+            .tool-remove,
+            .cable-remove {
+                min-width: 44px !important;
+                min-height: 44px !important;
+                padding: 10px !important;
+                font-size: 1.2rem !important;
+            }
+            
+            /* Back-Button */
+            .btn-back {
+                width: auto !important;
+                min-width: 100px;
+            }
+            
+            /* Upload-Zone Button */
+            .upload-button,
+            #upload-zone .btn {
+                width: 100% !important;
+                padding: 18px 20px !important;
+                font-size: 1.1rem !important;
+            }
+        }
+
+        /* === SEHR KLEINE DISPLAYS (iPhone SE, etc.) === */
+        @media (max-width: 380px) {
+            .btn {
+                font-size: 0.8rem;
+                padding: 12px 14px;
+                min-height: 44px;
+            }
+            
+            .btn-large {
+                font-size: 0.95rem !important;
+                padding: 14px 16px !important;
+                min-height: 52px !important;
+            }
+            
+            /* Icons kleiner */
+            .btn::before {
+                font-size: 1rem;
+            }
+        }
+
+        /* === LANDSCAPE MODUS (Handy quer) === */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .btn-large {
+                min-height: 48px !important;
+                padding: 12px 20px !important;
+            }
+            
+            .btn-row {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        /* === SPEZIFISCHE BUTTON-GRUPPEN === */
+
+        /* Photo-Step Buttons */
+        #photo-step .btn-large {
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        /* Material-Step Buttons */
+        #material-step .btn {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            #material-step > div[style*="text-align: center"] {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            #material-step .btn-success,
+            #material-step .btn-orange {
+                width: 100% !important;
+                flex: none !important;
+            }
+        }
+
+        /* Instructions-Step Buttons */
+        @media (max-width: 768px) {
+            #instructions-step > div[style*="text-align: center"] {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            #instructions-step .btn-success,
+            #instructions-step .btn-orange {
+                width: 100% !important;
+                flex: none !important;
+            }
+        }
+
+        /* Finish-Screen Buttons */
+        @media (max-width: 768px) {
+            #finish-screen .section > div {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px;
+            }
+            
+            #finish-screen .btn-large {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+        }
+
+        /* Work-Step Item Buttons (Bearbeiten/Löschen) */
+        @media (max-width: 768px) {
+            .work-step-item .btn-edit,
+            .work-step-item .btn-danger {
+                padding: 8px 12px !important;
+                font-size: 0.8rem !important;
+                min-height: 40px !important;
+                min-width: 70px !important;
+            }
+        }
+
+        /* === BUTTON HOVER/ACTIVE STATES MOBILE === */
+        @media (max-width: 768px) {
+            /* Kein Hover auf Touch-Geräten */
+            .btn:hover {
+                transform: none;
+            }
+            
+            /* Stattdessen Active-State */
+            .btn:active {
+                transform: scale(0.97);
+                opacity: 0.9;
+            }
+        }
+
+        /* === FIX: Flex-Container mit Buttons === */
+        @media (max-width: 768px) {
+            /* Alle Flex-Container mit Buttons */
+            div[style*="display: flex"][style*="justify-content: center"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+            
+            /* Buttons in Flex-Containern */
+            div[style*="display: flex"] > .btn {
+                width: 100% !important;
+                flex: none !important;
+                min-width: unset !important;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -1788,11 +2035,11 @@
                     
                     <div id="materials-list" class="materials-list"></div>
                     
-                    <div style="text-align: center; margin: 30px 0; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                        <button class="btn btn-success btn-large" onclick="nextToInstructions()" style="flex: 1; min-width: 200px;">
+                    <div style="text-align: center; margin: 30px 0;" class="button-group">
+                        <button class="btn btn-success btn-large btn-full" onclick="nextToInstructions()">
                             ➡️ Weiter zu Hinweisen (<span id="material-count">0</span> Materialien)
                         </button>
-                        <button class="btn btn-orange btn-large" onclick="finishRecording()" style="flex: 1; min-width: 200px;">
+                        <button class="btn btn-orange btn-large btn-full" onclick="finishRecording()">
                             ✅ Aufnahme beenden
                         </button>
                     </div>
@@ -1880,11 +2127,11 @@
                                 placeholder="z.B. Achtung! Reihenfolge beachten, Vorsicht Quetschgefahr, Nicht überdehnen..."></textarea>
                     </div>
 
-                    <div style="text-align: center; margin: 30px 0; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                        <button class="btn btn-success btn-large" onclick="nextToPhotos()" style="flex: 1; min-width: 200px;">
+                    <div style="text-align: center; margin: 30px 0;" class="button-group">
+                        <button class="btn btn-success btn-large btn-full" onclick="nextToPhotos()">
                             ➡️ Weiter zu Fotos
                         </button>
-                        <button class="btn btn-orange btn-large" onclick="finishRecording()" style="flex: 1; min-width: 200px;">
+                        <button class="btn btn-orange btn-large btn-full" onclick="finishRecording()">
                             ✅ Aufnahme beenden
                         </button>
                     </div>
@@ -1972,11 +2219,11 @@
                     
                     <div class="photo-preview" id="photo-preview"></div>
                     
-                    <div style="text-align: center; margin: 30px 0; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                        <button class="btn btn-success btn-large" onclick="saveAndNextWorkStep()" id="photo-next-btn" style="flex: 1; min-width: 200px;">
+                    <div style="text-align: center; margin: 30px 0;" class="button-group">
+                        <button class="btn btn-success btn-large btn-full" onclick="saveAndNextWorkStep()" id="photo-next-btn">
                             ➡️ Nächster Arbeitsschritt (<span id="photo-count">0</span> Bilder)
                         </button>
-                        <button class="btn btn-orange btn-large" onclick="finishRecording()" style="flex: 1; min-width: 200px;">
+                        <button class="btn btn-orange btn-large btn-full" onclick="finishRecording()">
                             ✅ Aufnahme beenden
                         </button>
                     </div>
@@ -2010,11 +2257,11 @@
                         Wählen Sie das gewünschte Export-Format für Ihre Montageanleitung:
                     </p>
                     
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                        <button class="btn btn-large btn-success" onclick="showExportOptions()">
+                    <div class="button-group">
+                        <button class="btn btn-large btn-success btn-full" onclick="showExportOptions()">
                             📊 PowerPoint exportieren
                         </button>
-                        <button class="btn btn-large" onclick="exportBOM()" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                        <button class="btn btn-large btn-full" onclick="exportBOM()" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
                             📋 Stückliste exportieren
                         </button>
                     </div>
