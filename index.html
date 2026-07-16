@@ -1636,6 +1636,47 @@
             color: var(--hoermann-blue);
         }
 
+        /* === FOTO-LÖSCH-BUTTON FIX === */
+        .photo-item {
+            position: relative;
+            overflow: visible !important;
+            z-index: 10;
+        }
+
+        .delete-photo {
+            position: absolute !important;
+            top: 8px !important;
+            right: 8px !important;
+            width: 48px !important;
+            height: 48px !important;
+            z-index: 1000 !important;
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            -webkit-tap-highlight-color: rgba(220, 53, 69, 0.3) !important;
+            background: #dc3545 !important;
+            color: white !important;
+            border: 3px solid white !important;
+            border-radius: 50% !important;
+            font-size: 28px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
+        }
+
+        .delete-photo:hover {
+            transform: scale(1.15);
+            background: #c82333 !important;
+        }
+
+        .delete-photo:active {
+            transform: scale(0.9) !important;
+        }
+
 </style>
 </head>
 <body>
@@ -2600,40 +2641,7 @@
             }
         }
 
-        // ===== START RECORDING =====
-        function startRecording() {
-            const customer = document.getElementById('customer-input').value.trim();
-            const product = document.getElementById('product-input').value.trim();
-            const variant = document.getElementById('variant-input').value.trim();
-            
-            if (!customer && !product && !variant) {
-                showValidationError('⚠️ Bitte füllen Sie mindestens ein Feld aus!');
-                return;
-            }
-            
-            projectInfo = {
-                customer: customer,
-                product: product,
-                variant: variant,
-                createdAt: new Date().toLocaleString('de-DE')
-            };
-            
-            updateProjectInfoDisplay();
-            
-            document.getElementById('start-screen').classList.add('hidden');
-            setTimeout(() => {
-                document.getElementById('recording-interface').classList.remove('hidden');
-                document.getElementById('photo-step').classList.add('hidden');
-                document.getElementById('instructions-step').classList.add('hidden');
-                document.getElementById('material-step').classList.remove('hidden');
-                
-                currentStep = 1;
-                updateStepIndicator();
-            }, 300);
-            
-            saveToIndexedDB();
-            console.log('🎬 Aufnahme gestartet für:', projectInfo.customer);
-        }
+        
 
         function showValidationError(message) {
             const validationMessage = document.getElementById('validation-message');
@@ -2852,7 +2860,7 @@
 
         // ===== START RECORDING =====
         function startRecording() {
-            const customer = document.getElementById('customer-input').value.trim();
+    const customer = document.getElementById('customer-input').value.trim();
             const product = document.getElementById('product-input').value.trim();
             const variant = document.getElementById('variant-input').value.trim();
             
@@ -2869,6 +2877,13 @@
             };
             
             updateProjectInfoDisplay();
+            
+            // ✅ SCANSCHRITT-CHECKBOX BEIM START ZURÜCKSETZEN
+            const scanCheckbox = document.getElementById('scan-step-checkbox');
+            if (scanCheckbox) {
+                scanCheckbox.checked = false;
+                console.log('✅ Scanschritt-Checkbox beim Start zurückgesetzt');
+            }
             
             document.getElementById('start-screen').classList.add('hidden');
             setTimeout(() => {
@@ -3556,6 +3571,7 @@
             });
         }
 
+        // === NEUE SICHERE VERSION ===
         function displayPhotos() {
             const preview = document.getElementById('photo-preview');
             
@@ -3570,9 +3586,14 @@
             }
 
             preview.innerHTML = '';
+            
             currentPhotos.forEach((photo, index) => {
                 const photoItem = document.createElement('div');
                 photoItem.className = 'photo-item fade-in';
+                
+                // WICHTIG: ID für Tracking
+                photoItem.dataset.photoIndex = index;
+                photoItem.dataset.photoId = photo.id || `temp_${Date.now()}_${index}`;
                 
                 const sourceConfig = {
                     'camera': { icon: '📷', text: 'Kamera' },
@@ -3581,30 +3602,112 @@
                 };
                 const config = sourceConfig[photo.source] || { icon: '📷', text: 'Foto' };
                 
-                photoItem.innerHTML = `
-                    <img src="${photo.data}" alt="Foto ${index + 1}" loading="lazy">
-                    <button class="delete-photo" onclick="deletePhoto(${index})" title="Foto löschen">×</button>
-                    <div class="photo-source-badge">${config.icon} ${config.text}</div>
-                `;
+                // BILD
+                const img = document.createElement('img');
+                img.src = photo.data;
+                img.alt = `Foto ${index + 1}`;
+                img.loading = 'lazy';
+                
+                // LÖSCH-BUTTON (KEIN onclick!)
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-photo';
+                deleteBtn.textContent = '×';
+                deleteBtn.title = `Foto ${index + 1} löschen`;
+                deleteBtn.setAttribute('type', 'button');
+                
+                // EVENT-HANDLER direkt anhängen
+                deleteBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Index DYNAMISCH ermitteln
+                    const currentIndex = Array.from(preview.children).indexOf(photoItem);
+                    deletePhotoSafe(currentIndex, photo.id);
+                });
+                
+                // Touch-Support
+                deleteBtn.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const currentIndex = Array.from(preview.children).indexOf(photoItem);
+                    deletePhotoSafe(currentIndex, photo.id);
+                });
+                
+                // SOURCE-BADGE
+                const badge = document.createElement('div');
+                badge.className = 'photo-source-badge';
+                badge.textContent = `${config.icon} ${config.text}`;
+                
+                // ZUSAMMENBAU
+                photoItem.appendChild(img);
+                photoItem.appendChild(deleteBtn);
+                photoItem.appendChild(badge);
                 preview.appendChild(photoItem);
             });
         }
 
-        async function deletePhoto(index) {
-            if (index < 0 || index >= currentPhotos.length) return;
+        // === NEUE SICHERE VERSION ===
+        async function deletePhotoSafe(index, photoId) {
+            console.log('=== DELETE PHOTO SAFE START ===');
+            console.log('Index:', index);
+            console.log('Photo ID:', photoId);
+            console.log('Array Länge vorher:', currentPhotos.length);
+            
+            // Validierung
+            if (index < 0 || index >= currentPhotos.length) {
+                console.error('❌ Ungültiger Index:', index);
+                alert('⚠️ Fehler: Foto konnte nicht gelöscht werden.');
+                return;
+            }
             
             const photo = currentPhotos[index];
-            if (confirm('Foto wirklich löschen?')) {
+            
+            // ID-Prüfung für extra Sicherheit
+            if (photoId && photo.id && photoId !== photo.id) {
+                console.error('❌ ID-Mismatch! Erwartet:', photoId, 'Gefunden:', photo.id);
+                alert('⚠️ Fehler: Foto-ID stimmt nicht überein.');
+                return;
+            }
+            
+            // Bestätigung mit Details
+            const confirmMsg = `Foto ${index + 1} von ${currentPhotos.length} löschen?\n\n` +
+                            `Quelle: ${photo.source}\n` +
+                            `Zeitstempel: ${photo.timestamp}`;
+            
+            if (!confirm(confirmMsg)) {
+                console.log('⏹️ Löschvorgang abgebrochen');
+                return;
+            }
+            
+            try {
                 // Aus IndexedDB löschen
                 if (photo.id) {
+                    console.log('🗄️ Lösche aus IndexedDB, ID:', photo.id);
                     await deletePhotoFromDB(photo.id);
                 }
                 
-                currentPhotos.splice(index, 1);
+                // Aus Array entfernen
+                const deleted = currentPhotos.splice(index, 1);
+                console.log('✅ Foto gelöscht:', deleted[0]);
+                console.log('Array Länge nachher:', currentPhotos.length);
+                
+                // UI komplett neu rendern
                 displayPhotos();
                 updatePhotoNextButton();
                 updateAllCounts();
                 await calculateStorageUsage();
+                
+                // Erfolgs-Toast
+                if (typeof showToast === 'function') {
+                    showToast(`✅ Foto ${index + 1} gelöscht`);
+                }
+                
+                console.log('=== DELETE PHOTO SAFE ENDE ===');
+                
+            } catch (error) {
+                console.error('❌ Fehler beim Löschen:', error);
+                alert(`⚠️ Fehler: ${error.message}`);
+                displayPhotos(); // Rollback
             }
         }
 
@@ -4520,8 +4623,16 @@
             document.getElementById('tool-input').value = '';
             document.getElementById('torque-input').value = '';
             document.getElementById('warning-input').value = '';
+            
+            // ✅ SCANSCHRITT-CHECKBOX ZURÜCKSETZEN
+            const scanCheckbox = document.getElementById('scan-step-checkbox');
+            if (scanCheckbox) {
+                scanCheckbox.checked = false;
+            }
+            
             clearAdditionalTools();
             clearCables();
+   
 
             stopCamera();
             document.getElementById('photo-step').classList.add('hidden');
