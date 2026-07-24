@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funkwerk Montageanleitungs-Recorder V3</title>
+
+    <!-- ✅ WICHTIG: label-images.js MUSS HIER stehen (VOR allen anderen Scripts!) -->
+    <script src="label-images.js"></script>
+
+
     <!-- QR/Barcode Scanner Library -->
     <!-- ZXing Browser - Besser für iOS -->
     <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
@@ -2053,6 +2058,185 @@
             margin-left: 0; /* Linksbündig */
         }
 
+        /* ========================================
+        PRODUKTIONSBEREICH TABS
+        ======================================== */
+
+        .production-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(0, 59, 122, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 59, 122, 0.15);
+            border-color: var(--hoermann-blue);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--hoermann-blue), var(--hoermann-light-blue));
+            color: white;
+            border-color: var(--hoermann-blue);
+            box-shadow: 0 8px 25px rgba(0, 59, 122, 0.3);
+        }
+
+        .tab-btn.active::before {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            animation: checkmark 0.3s ease;
+        }
+
+        @keyframes checkmark {
+            0% { transform: scale(0) rotate(-45deg); }
+            50% { transform: scale(1.2) rotate(0deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        /* Sub-Tabs (Funkwerk Unterkategorien) */
+        .sub-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(0, 59, 122, 0.05);
+            border-radius: 15px;
+            border: 2px dashed rgba(0, 59, 122, 0.2);
+        }
+
+        .sub-tab-btn {
+            background: white;
+            border: 2px solid rgba(0, 59, 122, 0.2);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+        }
+
+        .sub-tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 59, 122, 0.1);
+            border-color: var(--hoermann-orange);
+        }
+
+        .sub-tab-btn.active {
+            background: linear-gradient(135deg, var(--hoermann-orange), #ff9500);
+            color: white;
+            border-color: var(--hoermann-orange);
+            box-shadow: 0 5px 15px rgba(255, 130, 0, 0.3);
+        }
+
+        /* Zusammenfassung der Auswahl */
+        .selection-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(40, 167, 69, 0.05);
+            border-radius: 15px;
+            border: 2px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .summary-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .summary-text {
+            flex: 1;
+        }
+
+        .summary-text strong {
+            color: var(--hoermann-blue);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-text span {
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Mobile Optimierung */
+        @media (max-width: 768px) {
+            .production-tabs {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .tab-btn {
+                padding: 18px;
+                font-size: 1.1rem;
+            }
+            
+            .sub-tabs {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .sub-tab-btn {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+            
+            .selection-summary {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .summary-card {
+                padding: 12px;
+            }
+            
+            .summary-icon {
+                font-size: 1.5rem;
+            }
+            
+            .summary-text strong {
+                font-size: 0.75rem;
+            }
+            
+            .summary-text span {
+                font-size: 1rem;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -2074,28 +2258,76 @@
                 <div class="section">
                     <h3>📋 Neue Montageanleitung erstellen</h3>
                     <p style="margin-bottom: 25px; color: var(--text-light); font-size: 1.1rem;">
-                        Bitte füllen Sie die folgenden Informationen aus, bevor Sie mit der Aufnahme beginnen.
+                        Bitte wählen Sie zunächst den Produktionsbereich aus.
                     </p>
                     
-                    <div class="input-group">
-                        <label>👤 Kunde:</label>
-                        <input type="text" id="customer-input" 
-                               placeholder="z.B. BMW AG, Volkswagen, Audi AG..." 
-                               required>
+                    <!-- === PRODUKTIONSBEREICH TABS === -->
+                    <div class="production-tabs">
+                        <button class="tab-btn active" onclick="selectProductionArea('funkwerk')" id="tab-funkwerk">
+                            📻 Funkwerk
+                        </button>
+                        <button class="tab-btn" onclick="selectProductionArea('elexon')" id="tab-elexon">
+                            ⚡ Elexon
+                        </button>
                     </div>
                     
-                    <div class="input-group">
-                        <label>🔧 Produkt:</label>
-                        <input type="text" id="product-input" 
-                               placeholder="z.B. Batteriegehäuse, Türmodul, Karosserieteile..." 
-                               required>
+                    <!-- === FUNKWERK SUB-TABS === -->
+                    <div class="sub-tabs" id="funkwerk-subtabs">
+                        <button class="sub-tab-btn active" onclick="selectFunkwerkType('endmontage')" id="subtab-endmontage">
+                            🔧 Endmontage
+                        </button>
+                        <button class="sub-tab-btn" onclick="selectFunkwerkType('vormontage')" id="subtab-vormontage">
+                            🔩 Vormontage
+                        </button>
                     </div>
                     
-                    <div class="input-group">
-                        <label>📦 Variante:</label>
-                        <input type="text" id="variant-input" 
-                               placeholder="z.B. Version 2.1, Typ A, Standard-Ausführung..." 
-                               required>
+                    <!-- === ELEXON SUB-TABS (versteckt) === -->
+                    <div class="sub-tabs hidden" id="elexon-subtabs">
+                        <p style="text-align: center; color: var(--text-light); padding: 15px;">
+                            Keine Unterkategorien erforderlich
+                        </p>
+                    </div>
+                    
+                    <!-- === AUSGEWÄHLTE KONFIGURATION === -->
+                    <div class="selection-summary" id="selection-summary">
+                        <div class="summary-card">
+                            <span class="summary-icon">📻</span>
+                            <div class="summary-text">
+                                <strong>Produktionsbereich:</strong><br>
+                                <span id="summary-area">Funkwerk</span>
+                            </div>
+                        </div>
+                        <div class="summary-card" id="summary-type-card">
+                            <span class="summary-icon">🔧</span>
+                            <div class="summary-text">
+                                <strong>Typ:</strong><br>
+                                <span id="summary-type">Endmontage</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- === PROJEKT-INFORMATIONEN === -->
+                    <div style="margin-top: 30px;">
+                        <div class="input-group">
+                            <label>👤 Kunde:</label>
+                            <input type="text" id="customer-input" 
+                                placeholder="z.B. BMW AG, Volkswagen, Audi AG..." 
+                                required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>🔧 Produkt:</label>
+                            <input type="text" id="product-input" 
+                                placeholder="z.B. Batteriegehäuse, Türmodul, Karosserieteile..." 
+                                required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>📦 Variante:</label>
+                            <input type="text" id="variant-input" 
+                                placeholder="z.B. Version 2.1, Typ A, Standard-Ausführung..." 
+                                required>
+                        </div>
                     </div>
                     
                     <div style="text-align: center; margin-top: 30px;">
@@ -2482,6 +2714,463 @@
         // ===== LOGO FÜR POWERPOINT EXPORT =====
         const companyLogo = 'data:image/png;base64,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';
         
+        // Seitenverhältnisse der Label-Bilder (aus label-images.js)
+        const LABEL_ASPECT_RATIOS = {
+            VORMONTAGE: 1.3333,  // 400 x 300
+            EOL: 1.3333,         // 400 x 300
+            VP: 1.3333,          // 400 x 300
+            FA: 1.3333           // 400 x 300
+        };
+
+        // ===== PRODUKTIONSBEREICH AUSWAHL =====
+        let selectedProductionArea = 'Funkwerk'; // Default
+        let selectedFunkwerkType = 'Endmontage'; // Default
+
+       // ===== LABEL-BILDER (aus label-images.js) =====
+        const IMAGE_PLACEHOLDER_VORMONTAGE = LABEL_IMAGES?.VORMONTAGE || '';
+        const IMAGE_PLACEHOLDER_LABEL_EOL = LABEL_IMAGES?.EOL || '';
+        const IMAGE_PLACEHOLDER_LABEL_VP = LABEL_IMAGES?.VP || '';
+        const IMAGE_PLACEHOLDER_LABEL_FA = LABEL_IMAGES?.FA || '';
+
+        // Optional: Debug-Ausgabe
+        if (LABEL_IMAGES) {
+            console.log('✅ Label-Bilder erfolgreich geladen');
+        } else {
+            console.warn('⚠️ label-images.js nicht gefunden!');
+        }
+
+        
+       function selectProductionArea(area) {
+            selectedProductionArea = area.toLowerCase(); // ← Kleinbuchstaben erzwingen
+            
+            console.log('📻 Produktionsbereich gewählt:', area);
+            
+            // Tabs aktualisieren
+            document.getElementById('tab-funkwerk').classList.remove('active');
+            document.getElementById('tab-elexon').classList.remove('active');
+            document.getElementById('tab-' + area).classList.add('active');
+            
+            // Sub-Tabs ein-/ausblenden
+            const funkwerkSubs = document.getElementById('funkwerk-subtabs');
+            const elexonSubs = document.getElementById('elexon-subtabs');
+            const summaryTypeCard = document.getElementById('summary-type-card');
+            
+            if (area === 'funkwerk') {
+                funkwerkSubs.classList.remove('hidden');
+                elexonSubs.classList.add('hidden');
+                summaryTypeCard.style.display = 'flex';
+                
+                // Zusammenfassung aktualisieren
+                document.getElementById('summary-area').textContent = 'Funkwerk';
+                document.getElementById('summary-type').textContent = 
+                    selectedFunkwerkType === 'endmontage' ? 'Endmontage' : 'Vormontage';
+                
+            } else {
+                funkwerkSubs.classList.add('hidden');
+                elexonSubs.classList.remove('hidden');
+                summaryTypeCard.style.display = 'none';
+                
+                // Zusammenfassung aktualisieren
+                document.getElementById('summary-area').textContent = 'Elexon';
+            }
+        }
+
+       // ===== LABEL-FOLIEN FÜR POWERPOINT-EXPORT =====
+
+        function createVormontageLabelSlide(pptx) {
+            const slide = pptx.addSlide();
+            const imageAreaLeft = 0.2;
+            const imageAreaTop = 0.9;
+            const imageAreaWidth = 6.2;
+            const imageAreaHeight = 6.0;
+            
+            // Farben
+            const hoermannBlue = '003b7a';
+            const hoermannOrange = 'ff8200';
+            
+            // Header
+            slide.addText('Label: Baugruppenlabel aufkleben und scannen', {
+                x: 0.5, y: 0.5, w: 9, h: 0.6,
+                fontSize: 28,
+                bold: true,
+                color: hoermannBlue,
+                align: 'left'
+            });
+            
+            // Materialien-Tabelle (leer)
+            const tableData = [
+                [
+                    { text: 'Pos.', options: { bold: true, color: 'FFFFFF', fill: hoermannBlue } },
+                    { text: 'Artikelnummer', options: { bold: true, color: 'FFFFFF', fill: hoermannBlue } },
+                    { text: 'Bezeichnung', options: { bold: true, color: 'FFFFFF', fill: hoermannBlue } },
+                    { text: 'Anz.', options: { bold: true, color: 'FFFFFF', fill: hoermannBlue } }
+                ],
+                [
+                    { text: '-', options: { align: 'center' } },
+                    { text: '-', options: { align: 'center' } },
+                    { text: '-', options: { align: 'center' } },
+                    { text: '-', options: { align: 'center' } }
+                ]
+            ];
+            
+            slide.addTable(tableData, {
+                x: 0.5, y: 1.2, w: 9, h: 0.8,
+                fontSize: 14,
+                border: { pt: 1, color: 'CCCCCC' },
+                align: 'left'
+            });
+            
+            // Montageanweisung
+            slide.addText('Montageanweisung', {
+                x: 4.5, y: 2.2, w: 5, h: 0.4,
+                fontSize: 18,
+                bold: true,
+                color: hoermannBlue
+            });
+            
+            slide.addText('• Label aufkleben und scannen', {
+                x: 4.5, y: 2.7, w: 5, h: 1.5,
+                fontSize: 16,
+                color: '333333',
+                valign: 'top',
+                bullet: false
+            });
+
+            // === BILD EINFÜGEN (Label-spezifisch) ===
+            if (IMAGE_PLACEHOLDER_VORMONTAGE && IMAGE_PLACEHOLDER_VORMONTAGE !== '') {
+                try {
+                    // Verwende die einstellbaren Werte von oben
+                    const displayHeight = IMAGE_HEIGHT;
+                    const displayWidth = IMAGE_WIDTH;
+
+                    // DEBUG: Werte ausgeben
+                    console.log('🖼️ Vormontage-Bild:', { displayWidth, displayHeight, IMAGE_HEIGHT, IMAGE_WIDTH });
+                    
+                    // Zentrieren im Bereich
+                    const xPos = imageAreaLeft + (imageAreaWidth - displayWidth) / 2;
+                    const yPos = imageAreaTop + (imageAreaHeight - displayHeight) / 2;
+                    
+                    slide.addImage({
+                        data: IMAGE_PLACEHOLDER_VORMONTAGE,
+                        x: xPos,
+                        y: yPos,
+                        w: displayWidth,
+                        h: displayHeight
+                    });
+                    
+                    console.log('✅ Vormontage-Label-Bild eingefügt mit korrektem Seitenverhältnis');
+                    
+                } catch (error) {
+                    console.error('❌ Fehler beim Vormontage-Label-Bild einfügen:', error);
+                    
+                    // Fallback: Platzhalter anzeigen
+                    slide.addText('[BILD FEHLT]', {
+                        x: imageAreaLeft + 2,
+                        y: imageAreaTop + 2.5,
+                        w: 2,
+                        h: 0.5,
+                        fontSize: 16,
+                        color: 'FF0000',
+                        align: 'center'
+                    });
+                }
+            } else {
+                // Kein Bild definiert: Platzhalter
+                slide.addShape(pptx.ShapeType.rect, {
+                    x: imageAreaLeft,
+                    y: imageAreaTop,
+                    w: imageAreaWidth,
+                    h: imageAreaHeight,
+                    fill: { color: 'F5F5F5' },
+                    line: { color: 'CCCCCC', width: 1, dashType: 'dash' }
+                });
+                
+                slide.addText('[BILD]', {
+                    x: imageAreaLeft + 2,
+                    y: imageAreaTop + 2.5,
+                    w: 2,
+                    h: 0.5,
+                    fontSize: 16,
+                    color: '969696',
+                    align: 'center'
+                });
+            }
+            
+            // Scanschritt-Logo (rechts unten)
+            slide.addText('🔍 SCANSCHRITT', {
+                x: 7.5, y: 5, w: 2, h: 0.5,
+                fontSize: 14,
+                bold: true,
+                color: '28a745',
+                align: 'right'
+            });
+            
+            console.log('✅ Vormontage-Label-Folie erstellt');
+        }
+
+        function createEndmontageLabelSlides(pptx) {
+            const hoermannBlue = '003b7a';
+            const hoermannOrange = 'ff8200';
+            const imageAreaLeft = 0.2;
+            const imageAreaTop = 0.9;
+            const imageAreaWidth = 6.2;
+            const imageAreaHeight = 6.0;
+
+            // === BILDGRÖSSEN-EINSTELLUNGEN (zum Experimentieren) ===
+            const IMAGE_HEIGHT = 5;  // ← HIER ANPASSEN (0.5 bis 6.0)
+            const IMAGE_WIDTH = IMAGE_HEIGHT * 0.8;  // Automatisch 4:3
+            
+            
+            const labels = [
+                {
+                    title: 'Label EOL: Fertigwarenlabel scannen und für EOL beilegen',
+                    instructions: '• Label ausdrucken\n• Label scannen\n• Für Prüfer beilegen',
+                    warning: 'Label wird nach erfolgreicher Prüfung von Prüfer aufgeklebt'
+                },
+                {
+                    title: 'Label VP: Fertigwarenlabel scannen und für VP beilegen',
+                    instructions: '• Label ausdrucken\n• Label scannen\n• Für Verpackung beilegen',
+                    warning: 'Label wird beim Verpacken aufgeklebt'
+                },
+                {
+                    title: 'Label FA: Fertigwarenlabel scannen und für FA beilegen',
+                    instructions: '• Label ausdrucken\n• Label scannen\n• Auf Fertigungsauftrag aufkleben',
+                    warning: 'Label wird auf Fertigungsauftrag aufgeklebt'
+                }
+            ];
+            
+            labels.forEach((label, index) => {
+                const slide = pptx.addSlide();
+                slide.background = { color: 'FFFFFF' };
+                
+                // === HEADER (EXAKT WIE BEI ARBEITSSCHRITTEN) ===
+                slide.addText(label.title, {
+                    x: 0.16, 
+                    y: 0.16, 
+                    w: 13.0, 
+                    h: 0.55,
+                    fontSize: 28, 
+                    bold: true, 
+                    color: '000000', 
+                    align: 'left', 
+                    valign: 'middle',
+                    fill: { color: 'DBDBDB' },
+                    line: { color: '000000', width: 1 },
+                    shape: pptx.ShapeType.roundRect
+                });
+                
+                // === LOGO OBEN RECHTS ===
+                try {
+                    slide.addImage({
+                        data: companyLogo,
+                        x: 11.65, 
+                        y: 0.22, 
+                        w: 1.5, 
+                        h: 0.45
+                    });
+                } catch (error) {
+                    console.error('❌ Fehler beim Logo einfügen (Label-Folie):', error);
+                }
+                
+                // === BILD EINFÜGEN (Label-spezifisch) ===
+                const labelImages = [
+                    IMAGE_PLACEHOLDER_LABEL_EOL,
+                    IMAGE_PLACEHOLDER_LABEL_VP,
+                    IMAGE_PLACEHOLDER_LABEL_FA
+                ];
+
+                const labelImage = labelImages[index];
+
+                if (labelImage && labelImage !== '') {
+                    try {
+                        // Verwende die einstellbaren Werte von oben
+                        const displayHeight = IMAGE_HEIGHT;
+                        const displayWidth = IMAGE_WIDTH;
+
+                        // DEBUG: Werte ausgeben
+                        console.log(`🖼️ Endmontage-Bild ${index + 1}:`, { displayWidth, displayHeight, IMAGE_HEIGHT, IMAGE_WIDTH });
+                        
+                        // Zentrieren im Bereich
+                        const xPos = imageAreaLeft + (imageAreaWidth - displayWidth) / 2;
+                        const yPos = imageAreaTop + (imageAreaHeight - displayHeight) / 2;
+                        
+                        slide.addImage({
+                            data: labelImage,
+                            x: xPos,
+                            y: yPos,
+                            w: displayWidth,
+                            h: displayHeight
+                        });
+                        
+                        console.log(`✅ Label-Bild ${index + 1} eingefügt mit korrektem Seitenverhältnis`);
+                        
+                    } catch (error) {
+                        console.error('❌ Fehler beim Label-Bild einfügen:', error);
+                        
+                        // Fallback: Platzhalter anzeigen
+                        slide.addText('[BILD FEHLT]', {
+                            x: imageAreaLeft + 2,
+                            y: imageAreaTop + 2.5,
+                            w: 2,
+                            h: 0.5,
+                            fontSize: 16,
+                            color: 'FF0000',
+                            align: 'center'
+                        });
+                    }
+                } else {
+                    // Kein Bild definiert: Platzhalter
+                    slide.addShape(pptx.ShapeType.rect, {
+                        x: imageAreaLeft,
+                        y: imageAreaTop,
+                        w: imageAreaWidth,
+                        h: imageAreaHeight,
+                        fill: { color: 'F5F5F5' },
+                        line: { color: 'CCCCCC', width: 1, dashType: 'dash' }
+                    });
+                    
+                    slide.addText('[BILD]', {
+                        x: imageAreaLeft + 2,
+                        y: imageAreaTop + 2.5,
+                        w: 2,
+                        h: 0.5,
+                        fontSize: 16,
+                        color: '969696',
+                        align: 'center'
+                    });
+                }
+                
+                // === MATERIAL-TABELLE RECHTS OBEN (LEER) ===
+                const tableLeft = 6.5;
+                const tableTop = 0.86;
+                const tableWidth = 6.6;
+                
+                const tableData = [
+                    [
+                        { text: 'Pos.', options: { fontSize: 18, bold: true, color: 'FFFFFF', fill: '000000', align: 'left' } },
+                        { text: 'Artikelnummer', options: { fontSize: 18, bold: true, color: 'FFFFFF', fill: '000000', align: 'left' } },
+                        { text: 'Bezeichnung', options: { fontSize: 18, bold: true, color: 'FFFFFF', fill: '000000', align: 'left' } },
+                        { text: 'Anz.', options: { fontSize: 18, bold: true, color: 'FFFFFF', fill: '000000', align: 'left' } }
+                    ],
+                    [
+                        { text: '-', options: { fontSize: 18, color: '000000', fill: 'FFFFFF', align: 'center' } },
+                        { text: '-', options: { fontSize: 18, color: '000000', fill: 'FFFFFF', align: 'left' } },
+                        { text: '-', options: { fontSize: 18, color: '000000', fill: 'FFFFFF', align: 'left' } },
+                        { text: '-', options: { fontSize: 18, color: '000000', fill: 'FFFFFF', align: 'center' } }
+                    ]
+                ];
+                
+                slide.addTable(tableData, {
+                    x: tableLeft,
+                    y: tableTop,
+                    w: tableWidth,
+                    colW: [0.53, 1.97, 3.55, 0.55],
+                    border: { pt: 0.6, color: 'FFFFFF' },
+                    margin: 0.05
+                });
+                
+                // === MONTAGEANWEISUNG RECHTS MITTE ===
+                const instructionsTop = tableTop + 2.2;
+                
+                slide.addText('Montageanweisung', {
+                    x: tableLeft,
+                    y: instructionsTop,
+                    w: tableWidth,
+                    h: 0.32,
+                    fontSize: 20,
+                    bold: true,
+                    color: '000000',
+                    align: 'left',
+                    valign: 'middle',
+                    fill: { color: 'DBDBDB' },
+                    line: { color: '000000', width: 1 },
+                    shape: pptx.ShapeType.roundRect
+                });
+                
+                const instructionsContentTop = instructionsTop + 0.32;
+                
+                slide.addText(label.instructions, {
+                    x: tableLeft,
+                    y: instructionsContentTop,
+                    w: tableWidth,
+                    h: 1.4,
+                    fontSize: 18,
+                    color: '000000',
+                    align: 'left',
+                    valign: 'top',
+                    fill: { type: 'none' },
+                    line: { width: 0 },
+                    shape: pptx.ShapeType.rect
+                });
+                
+                // === HINWEISE ===
+                const hintTop = instructionsContentTop + 1.5;
+                
+                slide.addText('⚠ Hinweis', {
+                    x: tableLeft,
+                    y: hintTop,
+                    w: tableWidth,
+                    h: 0.35,
+                    fontSize: 18,
+                    bold: true,
+                    color: '000000',
+                    align: 'left',
+                    valign: 'middle',
+                    fill: { color: 'FFF0C8' },
+                    line: { color: '000000', width: 1 },
+                    shape: pptx.ShapeType.roundRect
+                });
+                
+                slide.addText(label.warning, {
+                    x: tableLeft,
+                    y: hintTop + 0.35,
+                    w: tableWidth,
+                    h: 0.6,
+                    fontSize: 18,
+                    color: '000000',
+                    align: 'left',
+                    valign: 'top',
+                    fill: { color: 'FFFFFF' },
+                    line: { color: '000000', width: 1 },
+                    shape: pptx.ShapeType.rect
+                });
+                
+                // === SCANSCHRITT-LOGO EINFÜGEN (RECHTS UNTEN) ===
+                try {
+                    const scanLogo = 'data:image/png;base64,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';
+                    
+                    slide.addImage({
+                        data: scanLogo,
+                        x: 12.328,  // Rechts unten
+                        y: 6.5,     // Unten
+                        w: 1.0,     // Breite: 1 inch
+                        h: 1.0      // Höhe: 1 inch
+                    });
+                    
+                    console.log('✅ Scanschritt-Logo für Label-Folie eingefügt:', label.title);
+                    
+                } catch (error) {
+                    console.error('❌ Logo konnte nicht eingefügt werden (Label):', error);
+                }
+                
+                console.log(`✅ Label-Folie ${index + 1}/3 erstellt:`, label.title);
+            });
+        }
+
+        function selectFunkwerkType(type) {
+            selectedFunkwerkType = type.toLowerCase(); // ← Kleinbuchstaben erzwingen
+            
+            console.log('🔧 Funkwerk-Typ gewählt:', type);
+            
+            // Sub-Tabs aktualisieren
+            document.getElementById('subtab-endmontage').classList.remove('active');
+            document.getElementById('subtab-vormontage').classList.remove('active');
+            document.getElementById('subtab-' + type).classList.add('active');
+            
+            // Zusammenfassung aktualisieren
+            document.getElementById('summary-type').textContent = 
+                type === 'endmontage' ? 'Endmontage' : 'Vormontage';
+        }
         
         // ===== INDEXEDDB FUNKTIONEN =====
         async function initIndexedDB() {
@@ -3234,9 +3923,56 @@
             }
         }
 
+        // ===== PRODUKTIONSBEREICH AUSWAHL =====
+        function selectProductionArea(area) {
+            selectedProductionArea = area;
+            
+            console.log('📻 Produktionsbereich gewählt:', area);
+            
+            // Tabs aktualisieren
+            document.getElementById('tab-funkwerk').classList.remove('active');
+            document.getElementById('tab-elexon').classList.remove('active');
+            document.getElementById('tab-' + area).classList.add('active');
+            
+            // Sub-Tabs ein-/ausblenden
+            const funkwerkSubs = document.getElementById('funkwerk-subtabs');
+            const elexonSubs = document.getElementById('elexon-subtabs');
+            const summaryTypeCard = document.getElementById('summary-type-card');
+            
+            if (area === 'funkwerk') {
+                funkwerkSubs.classList.remove('hidden');
+                elexonSubs.classList.add('hidden');
+                summaryTypeCard.style.display = 'flex';
+                
+                document.getElementById('summary-area').textContent = 'Funkwerk';
+                document.getElementById('summary-type').textContent = 
+                    selectedFunkwerkType === 'endmontage' ? 'Endmontage' : 'Vormontage';
+                
+            } else {
+                funkwerkSubs.classList.add('hidden');
+                elexonSubs.classList.remove('hidden');
+                summaryTypeCard.style.display = 'none';
+                
+                document.getElementById('summary-area').textContent = 'Elexon';
+            }
+        }
+
+        function selectFunkwerkType(type) {
+            selectedFunkwerkType = type;
+            
+            console.log('🔧 Funkwerk-Typ gewählt:', type);
+            
+            document.getElementById('subtab-endmontage').classList.remove('active');
+            document.getElementById('subtab-vormontage').classList.remove('active');
+            document.getElementById('subtab-' + type).classList.add('active');
+            
+            document.getElementById('summary-type').textContent = 
+                type === 'endmontage' ? 'Endmontage' : 'Vormontage';
+        }
+
         // ===== START RECORDING =====
         function startRecording() {
-    const customer = document.getElementById('customer-input').value.trim();
+            const customer = document.getElementById('customer-input').value.trim();
             const product = document.getElementById('product-input').value.trim();
             const variant = document.getElementById('variant-input').value.trim();
             
@@ -3249,8 +3985,12 @@
                 customer: customer,
                 product: product,
                 variant: variant,
+                productionArea: selectedProductionArea,
+                funkwerkType: selectedFunkwerkType, // ← Ohne Bedingung!
                 createdAt: new Date().toLocaleString('de-DE')
             };
+
+            console.log('📊 Projekt-Info:', projectInfo);
             
             updateProjectInfoDisplay();
             
@@ -3271,6 +4011,12 @@
                 currentStep = 1;
                 updateStepIndicator();
             }, 300);
+
+            // Automatische Label-Schritte für Vormontage
+            if (selectedProductionArea === 'funkwerk' && selectedFunkwerkType === 'vormontage') {
+                addVormontageLabel();
+                console.log('🏷️ Vormontage-Label als Schritt 1 hinzugefügt');
+            }
             
             saveToIndexedDB();
             console.log('🎬 Aufnahme gestartet für:', projectInfo.customer);
@@ -5065,6 +5811,12 @@
 
             stopCamera();
             document.getElementById('recording-interface').classList.add('hidden');
+
+            // Automatische Label-Schritte für Endmontage
+            if (projectInfo.productionArea === 'funkwerk' && projectInfo.funkwerkType === 'endmontage') {
+                addEndmontageLabels();
+                console.log('🏷️ 3 Endmontage-Label am Ende hinzugefügt');
+            }
             
             setTimeout(() => {
                 document.getElementById('finish-screen').classList.remove('hidden');
@@ -5637,9 +6389,123 @@
                 modal.remove();
             };
         }
+
+        function generateCompleteWorkSteps() {
+            const allSteps = [];
+            
+            // === VORMONTAGE: Label AM ANFANG ===
+            if (projectInfo.productionArea?.toLowerCase() === 'funkwerk' && projectInfo.funkwerkType?.toLowerCase() === 'vormontage') {
+                allSteps.push({
+                    stepNumber: 0,
+                    stepType: 'LABEL_VORMONTAGE',
+                    instructions: 'Label: Baugruppenlabel aufkleben und scannen',
+                    materials: [],
+                    tools: [],
+                    cables: [],
+                    photos: [{
+                        data: IMAGE_PLACEHOLDER_VORMONTAGE || '',
+                        resolution: '400x300',  // ← HIER ÄNDERN
+                        timestamp: new Date().toISOString(),
+                        source: 'label-image'
+                    }],
+                    isScanStep: true,
+                    isAutoGenerated: true
+                });
+            }
+            
+            // === NORMALE ARBEITSSCHRITTE ===
+            workSteps.forEach(function(step) {
+                allSteps.push({
+                    stepNumber: step.stepNumber,
+                    stepType: 'WORK_STEP',
+                    instructions: step.instructions || '',
+                    materials: (step.materials || []).map(function(m) {
+                        return {
+                            number: m.number || '',
+                            quantity: m.quantity || 1,
+                            description: m.description || ''
+                        };
+                    }),
+                    tools: step.tools || [],
+                    tool: step.tool || '',
+                    torque: step.torque || '',
+                    warning: step.warning || '',
+                    cables: (step.cables || []).map(function(c) {
+                        return {
+                            designation: c.designation || '',
+                            from: c.from || '',
+                            to: c.to || ''
+                        };
+                    }),
+                    photos: (step.photos || []).map(function(p) {
+                        return {
+                            data: p.data,
+                            resolution: p.resolution || '',
+                            timestamp: p.timestamp || ''
+                        };
+                    }),
+                    isScanStep: step.isScanStep || false,
+                    isAutoGenerated: false
+                });
+            });
+            
+            // === ENDMONTAGE: 3 Label AM ENDE ===
+            if (projectInfo.productionArea?.toLowerCase() === 'funkwerk' && projectInfo.funkwerkType?.toLowerCase() === 'endmontage') {
+                const endLabels = [
+                    {
+                        title: 'Label EOL: Fertigwarenlabel scannen und für EOL beilegen',
+                        image: IMAGE_PLACEHOLDER_LABEL_EOL,
+                        warning: 'Label wird nach erfolgreicher Prüfung von Prüfer aufgeklebt'
+                    },
+                    {
+                        title: 'Label VP: Fertigwarenlabel scannen und für VP beilegen',
+                        image: IMAGE_PLACEHOLDER_LABEL_VP,
+                        warning: 'Label wird beim Verpacken aufgeklebt'
+                    },
+                    {
+                        title: 'Label FA: Fertigwarenlabel scannen und für FA beilegen',
+                        image: IMAGE_PLACEHOLDER_LABEL_FA,
+                        warning: 'Label wird auf Fertigungsauftrag aufgeklebt'
+                    }
+                ];
+                
+                endLabels.forEach(function(label, index) {
+                    allSteps.push({
+                        stepNumber: workSteps.length + index + 1,
+                        stepType: 'LABEL_ENDMONTAGE',
+                        instructions: label.title,
+                        materials: [],
+                        tools: [],
+                        cables: [],
+                        warning: label.warning,
+                        photos: [{
+                            data: label.image || '',
+                            resolution: '300x400',  // ← HIER ÄNDERN (3x!)
+                            timestamp: new Date().toISOString(),
+                            source: 'label-image'
+                        }],
+                        isScanStep: true,
+                        isAutoGenerated: true
+                    });
+                });
+            }
+            
+            return allSteps;
+        }
         
-        function exportFullJSON() {
+      function exportFullJSON() {
             try {
+                console.log('=== JSON EXPORT START ===');
+                console.log('📊 Projekt-Info:', projectInfo);
+                console.log('📋 WorkSteps Anzahl:', workSteps.length);
+                console.log('🏷️ ProductionArea:', projectInfo.productionArea);
+                console.log('🏷️ FunkwerkType:', projectInfo.funkwerkType);
+                
+                // Generiere ALLE Schritte (inkl. Label)
+                const allSteps = generateCompleteWorkSteps();
+                console.log('✅ Generierte Schritte gesamt:', allSteps.length);
+                console.log('📝 Alle Schritte:', allSteps);
+                
                 // ALLE Daten sammeln - NICHTS geht verloren!
                 const exportData = {
                     metadata: {
@@ -5652,46 +6518,25 @@
                         customer: projectInfo.customer || '',
                         product: projectInfo.product || '',
                         variant: projectInfo.variant || '',
+                        productionArea: projectInfo.productionArea || '',
+                        funkwerkType: projectInfo.funkwerkType || '',
                         createdAt: projectInfo.createdAt || new Date().toLocaleString('de-DE')
                     },
-                    workSteps: workSteps.map(function(step) {
-                        return {
-                            stepNumber: step.stepNumber,
-                            instructions: step.instructions || '',
-                            materials: (step.materials || []).map(function(m) {
-                                return {
-                                    number: m.number || '',
-                                    quantity: m.quantity || 1,
-                                    description: m.description || ''
-                                };
-                            }),
-                            tools: step.tools || [],
-                            tool: step.tool || '',
-                            torque: step.torque || '',
-                            warning: step.warning || '',
-                            cables: (step.cables || []).map(function(c) {
-                                return {
-                                    designation: c.designation || '',
-                                    from: c.from || '',
-                                    to: c.to || ''
-                                };
-                            }),
-                            photos: (step.photos || []).map(function(p) {
-                                return {
-                                    data: p.data,
-                                    resolution: p.resolution || '',
-                                    timestamp: p.timestamp || ''
-                                };
-                            }),
-                            isScanStep: step.isScanStep || false
-                        };
-                    }),
+                    workSteps: allSteps,  // ← HIER: Nutze die generierten Schritte!
                     statistics: {
-                        totalSteps: workSteps.length,
-                        totalPhotos: workSteps.reduce(function(sum, step) { return sum + (step.photos || []).length; }, 0),
-                        totalMaterials: workSteps.reduce(function(sum, step) { return sum + (step.materials || []).length; }, 0)
+                        totalSteps: allSteps.length,
+                        manualSteps: workSteps.length,
+                        labelSteps: allSteps.length - workSteps.length,
+                        totalPhotos: allSteps.reduce(function(sum, step) { 
+                            return sum + (step.photos || []).length; 
+                        }, 0),
+                        totalMaterials: allSteps.reduce(function(sum, step) { 
+                            return sum + (step.materials || []).length; 
+                        }, 0)
                     }
                 };
+                
+                console.log('📦 Export-Daten:', exportData);
                 
                 const jsonString = JSON.stringify(exportData);
                 const blob = new Blob([jsonString], { type: 'application/json' });
@@ -5711,7 +6556,7 @@
                     '<div style="background:#e8f5e9;padding:15px;border-radius:10px;margin-bottom:20px;text-align:left;">' +
                     '<div style="color:#2e7d32;font-weight:bold;margin-bottom:10px;">✓ Alle Daten enthalten:</div>' +
                     '<div style="font-size:14px;color:#333;">' +
-                    '• ' + workSteps.length + ' Arbeitsschritte<br>' +
+                    '• ' + allSteps.length + ' Arbeitsschritte (inkl. Labels)<br>' +
                     '• ' + exportData.statistics.totalPhotos + ' Fotos (vollständig!)<br>' +
                     '• ' + exportData.statistics.totalMaterials + ' Materialien<br>' +
                     '• Dateigröße: ' + fileSizeMB + ' MB</div>' +
@@ -5725,13 +6570,23 @@
                 setTimeout(function() { URL.revokeObjectURL(url); }, 300000);
                 
             } catch (error) {
+                console.error('❌ JSON Export Fehler:', error);
                 alert('Export-Fehler: ' + error.message);
             }
         }
 
-        function createPowerPointPresentation() {
+function createPowerPointPresentation() {
     try {
         console.log('📊 Starte PowerPoint-Erstellung...');
+        
+        // === DEBUG: Projekt-Info prüfen ===
+        console.log('🔍 DEBUG - projectInfo:', projectInfo);
+        console.log('🔍 DEBUG - productionArea:', projectInfo?.productionArea);
+        console.log('🔍 DEBUG - funkwerkType:', projectInfo?.funkwerkType);
+
+        // === DEBUG: Funktionen vorhanden? ===
+        console.log('🔍 createVormontageLabelSlide:', typeof createVormontageLabelSlide);
+        console.log('🔍 createEndmontageLabelSlides:', typeof createEndmontageLabelSlides);
 
         const pres = new PptxGenJS();
         
@@ -5743,6 +6598,7 @@
         });
         pres.layout = 'CUSTOM_BREITBILD';
         
+                
         // === TITELFOLIE ===
         const titleSlide = pres.addSlide();
         titleSlide.background = { color: 'FFFFFF' };
@@ -5837,7 +6693,24 @@
             fontSize: 12, color: '999999', align: 'center'
         });
 
+        // === VORMONTAGE: Label-Folie AM ANFANG ===
+        console.log('🔍 Prüfe Vormontage-Bedingung:', {
+            area: projectInfo?.productionArea,
+            type: projectInfo?.funkwerkType,
+            areaMatch: projectInfo?.productionArea === 'funkwerk',
+            typeMatch: projectInfo?.funkwerkType === 'vormontage'
+        });
+
+        if (projectInfo.productionArea === 'funkwerk' && projectInfo.funkwerkType === 'vormontage') {
+            console.log('✅ Bedingung erfüllt! Rufe createVormontageLabelSlide() auf');
+            createVormontageLabelSlide(pres);
+        } else {
+            console.log('❌ Bedingung NICHT erfüllt - keine Vormontage-Folie');
+        }
+
         // === ARBEITSSCHRITT-FOLIEN ===
+        console.log(`📄 Exportiere ${workSteps.length} Arbeitsschritte...`);
+
         workSteps.forEach((step, index) => {
             const slide = pres.addSlide();
             slide.background = { color: 'FFFFFF' };
@@ -5881,6 +6754,7 @@
             const imageAreaTop = 0.9;
             const imageAreaWidth = 6.2;
             const imageAreaHeight = 6.0;
+
 
             if (step.photos.length > 0) {
                 if (step.photos.length === 1) {
@@ -6212,8 +7086,27 @@
 
             }); 
 
-        // PowerPoint-Datei speichern
-        let filename = 'Montageanleitung';
+            // === ENDMONTAGE: 3 Label-Folien AM ENDE ===
+            console.log('🔍 Prüfe Endmontage-Bedingung:', {
+                area: projectInfo?.productionArea,
+                type: projectInfo?.funkwerkType,
+                areaMatch: projectInfo?.productionArea?.toLowerCase() === 'funkwerk',
+                typeMatch: projectInfo?.funkwerkType?.toLowerCase() === 'endmontage'
+            });
+
+            if (projectInfo.productionArea?.toLowerCase() === 'funkwerk' && 
+                projectInfo.funkwerkType?.toLowerCase() === 'endmontage') {
+                console.log('✅ Bedingung erfüllt! Rufe createEndmontageLabelSlides() auf');
+                createEndmontageLabelSlides(pres);
+            } else {
+                console.log('❌ Bedingung NICHT erfüllt - keine Endmontage-Folien');
+            }
+
+            // Download
+            const timestamp = new Date().toISOString().slice(0, 10);
+            
+            // PowerPoint-Datei speichern
+            let filename = 'Montageanleitung';
         if (projectInfo.customer) {
             filename += `_${projectInfo.customer.replace(/[^a-zA-Z0-9]/g, '_')}`;
         }
